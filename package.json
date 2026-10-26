@@ -8,15 +8,24 @@
     "node": ">=24"
   },
   "scripts": {
+    "build": "npm run typecheck && npm run check",
     "check": "node check.mjs",
     "test": "node --test \"test/**/*.test.ts\"",
     "calibrate": "node src/calibrate.ts",
     "serve": "node src/server.ts",
+    "serve:neon": "node --env-file=.env.local src/server.ts",
     "typecheck": "tsc -p ."
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
     "ajv": "^8.20.0",
+    "pg-mem": "^3.0.14",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@neon/config": "^1.9.4",
+    "@neon/env": "^1.6.5",
+    "pg": "^8.23.1"
   }
 }

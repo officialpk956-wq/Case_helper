@@ -7,6 +7,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, w
 import { dirname, extname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { AuthError, createAuth } from "./auth.ts";
+import { openDatabase } from "./database.ts";
 import { DecisionError, ask, chooseEndgame, newRun, playCycle } from "./engine.ts";
 import { baselineNotif, experimentSlots, lever as leverOf, spendOf, testable, whyNot } from "./model.ts";
 import { briefingOf, loadScenario, replay } from "./play.ts";
@@ -249,14 +250,14 @@ const SECURITY = {
   "Cache-Control": "no-store",
 };
 
-export function createApp(opts: { scenarioDir?: string; webDir?: string; usersFile?: string; runsFile?: string; publicOrigin?: string; contactEmail?: string } = {}): App {
+export function createApp(opts: { scenarioDir?: string; webDir?: string; usersFile?: string; runsFile?: string; publicOrigin?: string; contactEmail?: string; persist?: () => Promise<void> } = {}): App {
   const dir = opts.scenarioDir ?? join(here, "..", "scenarios");
   const webDir = opts.webDir ?? join(here, "..", "web");
   const publicOrigin = opts.publicOrigin ? new URL(opts.publicOrigin) : null;
   if (publicOrigin && (publicOrigin.protocol !== "https:" || publicOrigin.pathname !== "/" || publicOrigin.search || publicOrigin.hash || publicOrigin.username || publicOrigin.password)) throw new Error("PUBLIC_ORIGIN must be an HTTPS origin");
   if (publicOrigin && (!opts.usersFile || !opts.runsFile)) throw new Error("hosted mode needs persistent USERS_FILE and RUNS_FILE");
   if (publicOrigin && (!opts.contactEmail || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(opts.contactEmail))) throw new Error("hosted mode needs CONTACT_EMAIL");
-  const auth = createAuth(opts.usersFile, !!publicOrigin);
+  let auth = createAuth(opts.usersFile, !!publicOrigin);
   const scenarios = readdirSync(dir).filter((f) => f.endsWith(".scenario.json")).sort().map((f) => loadScenario(join(dir, f)));
   const ventures = ventureFiles(dir).map(loadVenture).sort((a, b) => (a.meta.order ?? 99) - (b.meta.order ?? 99) || a.title.localeCompare(b.title));
   const sessions = new Map<number, Session>();
@@ -283,6 +284,32 @@ export function createApp(opts: { scenarioDir?: string; webDir?: string; usersFi
       writeFileSync(tmp, JSON.stringify({ version: 1, runs }), { mode: 0o600 });
       renameSync(tmp, opts.runsFile);
     } catch (e) { rmSync(tmp, { force: true }); throw e; }
+  };
+  const restoreFile = (file: string | undefined, contents: string | null): void => {
+    if (!file) return;
+    if (contents === null) rmSync(file, { force: true });
+    else writeFileSync(file, contents, { mode: 0o600 });
+  };
+  const contentsOf = (file: string | undefined): string | null => file && existsSync(file) ? readFileSync(file, "utf8") : null;
+  const authMutation = async <T>(action: () => Promise<T> | T): Promise<T> => {
+    if (!opts.persist) return action();
+    const oldUsers = contentsOf(opts.usersFile), oldRuns = contentsOf(opts.runsFile);
+    const oldSessions = [...sessions.entries()].map(([ref, run]) => [ref, structuredClone(run)] as const);
+    const result = await action();
+    try { await opts.persist?.(); return result; }
+    catch (e) {
+      restoreFile(opts.usersFile, oldUsers);
+      restoreFile(opts.runsFile, oldRuns);
+      auth = createAuth(opts.usersFile, !!publicOrigin);
+      sessions.clear(); for (const [ref, run] of oldSessions) sessions.set(ref, run);
+      throw e;
+    }
+  };
+  let mutationTail: Promise<void> = Promise.resolve();
+  const serial = <T>(action: () => Promise<T>): Promise<T> => {
+    const next = mutationTail.then(action);
+    mutationTail = next.then(() => {}, () => {});
+    return next;
   };
   // A run's number is also the key of what the browser remembers about it (drafts, the timer), so it must not repeat after a restart:
   // it is drawn at random, not counted from a start time that a quick restart could land on again.
@@ -474,16 +501,19 @@ export function createApp(opts: { scenarioDir?: string; webDir?: string; usersFi
       return sendJson(res, 200, { user });
     }
     if (method === "POST" && (path === "/api/auth/login" || path === "/api/auth/register")) {
-      const { user, cookie: set } = await (path.endsWith("login") ? auth.login : auth.register)(body?.username, body?.password);
+      const { user, cookie: set } = await authMutation(() => (path.endsWith("login") ? auth.login : auth.register)(body?.username, body?.password));
       return sendJson(res, 200, { user }, { "Set-Cookie": set });
     }
-    if (method === "POST" && path === "/api/auth/logout") return sendJson(res, 200, { ok: true }, { "Set-Cookie": auth.logout(cookie) });
+    if (method === "POST" && path === "/api/auth/logout") return sendJson(res, 200, { ok: true }, { "Set-Cookie": await authMutation(() => auth.logout(cookie)) });
     if (method === "POST" && path === "/api/auth/delete") {
-      const user = auth.userOf(cookie);
-      if (!user) throw new HttpError(401, "sign in first");
-      for (const [ref, run] of sessions) if (run.owner === user) sessions.delete(ref);
-      saveRuns();
-      return sendJson(res, 200, { ok: true }, { "Set-Cookie": auth.deleteAccount(cookie) });
+      const set = await authMutation(() => {
+        const user = auth.userOf(cookie);
+        if (!user) throw new HttpError(401, "sign in first");
+        for (const [ref, run] of sessions) if (run.owner === user) sessions.delete(ref);
+        saveRuns();
+        return auth.deleteAccount(cookie);
+      });
+      return sendJson(res, 200, { ok: true }, { "Set-Cookie": set });
     }
     throw new HttpError(404, "not found");
   };
@@ -506,16 +536,22 @@ export function createApp(opts: { scenarioDir?: string; webDir?: string; usersFi
       if (url.pathname.startsWith("/api/")) {
         if (method === "POST" && (req.rawHeaders.filter((v, i) => i % 2 === 0 && v.toLowerCase() === "content-type").length !== 1 || String(req.headers["content-type"] ?? "").split(";")[0]!.trim().toLowerCase() !== "application/json")) throw new HttpError(415, "send JSON");
         const body = method === "POST" ? await readBody(req) : undefined;
-        if (url.pathname.startsWith("/api/auth/")) return await authApi(res, method, url.pathname, body, req.headers.cookie);
+        if (url.pathname.startsWith("/api/auth/")) return method === "POST"
+          ? await serial(() => authApi(res, method, url.pathname, body, req.headers.cookie))
+          : await authApi(res, method, url.pathname, body, req.headers.cookie);
         const user = auth.userOf(req.headers.cookie);
         if (!user) throw new HttpError(401, "sign in first");
         if (method !== "POST") return sendJson(res, 200, api(method, url.pathname, body, user));
-        const before = [...sessions.entries()].map(([ref, run]) => [ref, structuredClone(run)] as const);
-        try {
-          const result = api(method, url.pathname, body, user);
-          saveRuns();
-          return sendJson(res, 200, result);
-        } catch (e) { sessions.clear(); for (const [ref, run] of before) sessions.set(ref, run); throw e; }
+        if (/^\/api\/runs\/\d+\/preview$/.test(url.pathname)) return sendJson(res, 200, api(method, url.pathname, body, user));
+        return await serial(async () => {
+          const before = [...sessions.entries()].map(([ref, run]) => [ref, structuredClone(run)] as const);
+          try {
+            const result = api(method, url.pathname, body, user);
+            saveRuns();
+            await opts.persist?.();
+            return sendJson(res, 200, result);
+          } catch (e) { sessions.clear(); for (const [ref, run] of before) sessions.set(ref, run); saveRuns(); throw e; }
+        });
       }
       if (method !== "GET") throw new HttpError(405, "method not allowed");
       const name = url.pathname === "/" ? "index.html" : url.pathname.slice(1);
@@ -534,8 +570,15 @@ export function createApp(opts: { scenarioDir?: string; webDir?: string; usersFi
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const port = Number(process.env.PORT ?? 4310);
-  const origin = process.env.PUBLIC_ORIGIN;
-  const app = createApp({ usersFile: process.env.USERS_FILE ?? join(here, "..", "data", "users.json"), runsFile: process.env.RUNS_FILE ?? join(here, "..", "data", "runs.json"), publicOrigin: origin, contactEmail: process.env.CONTACT_EMAIL });
-  app.server.listen(port, origin ? "0.0.0.0" : "127.0.0.1", () => console.log(`pm-sim is at ${origin ?? `http://127.0.0.1:${port}`} (${app.scenarios.length + app.ventures.length} cases)`));
+  const start = async () => {
+    const port = Number(process.env.PORT ?? 4310);
+    const origin = process.env.PUBLIC_ORIGIN ?? process.env.RENDER_EXTERNAL_URL;
+    const usersFile = process.env.USERS_FILE ?? join(here, "..", "data", "users.json");
+    const runsFile = process.env.RUNS_FILE ?? join(here, "..", "data", "runs.json");
+    if (origin && !process.env.DATABASE_URL) throw new Error("hosted mode requires DATABASE_URL; its local filesystem may be ephemeral");
+    const database = process.env.DATABASE_URL ? await openDatabase(usersFile, runsFile, process.env.DATABASE_URL) : null;
+    const app = createApp({ usersFile, runsFile, publicOrigin: origin, contactEmail: process.env.CONTACT_EMAIL, persist: database?.persist });
+    app.server.listen(port, origin ? "0.0.0.0" : "127.0.0.1", () => console.log(`pm-sim is at ${origin ?? `http://127.0.0.1:${port}`} (${app.scenarios.length + app.ventures.length} cases)`));
+  };
+  start().catch((e) => { console.error(e); process.exitCode = 1; });
 }

@@ -6,3 +6,4 @@ data/
 .env.*
 *.tmp
 MOVE_VERIFICATION.json
+.neon

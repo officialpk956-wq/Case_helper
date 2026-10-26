@@ -19,10 +19,10 @@
 
     <h2 id="privacy">Privacy</h2>
     <ul>
-      <li><b>Account and play data:</b> the server stores your username, a salted scrypt password hash, sign-in session tokens, case decisions, and simulation results on its storage. It does not store the password itself. Your session lasts up to seven days.</li>
+      <li><b>Account and play data:</b> the site stores your username, a salted scrypt password hash, sign-in session tokens, case decisions, and simulation results in a Postgres database when hosted publicly. The password itself is not stored. Your session lasts up to seven days.</li>
       <li><b>Browser data:</b> the HttpOnly session cookie keeps you signed in. Browser storage holds drafts, timers, unfinished-run shortcuts, and your theme choice. Clear this site's browser data to remove those local items.</li>
-      <li><b>Hosting:</b> if this site is public, your requests reach its hosting provider over HTTPS, and the provider may keep operational request logs under its own policy. pm-sim does not add analytics, advertising trackers, third-party fonts, or marketing email.</li>
-      <li><b>Access:</b> other accounts cannot access your runs through the app. The server operator and hosting provider can access stored data, so do not enter confidential information or reuse a password.</li>
+      <li><b>Hosting:</b> if this site is public, your requests reach Render over HTTPS and the saved data is held by the database provider. These providers may keep operational logs under their own policies. pm-sim does not add analytics, advertising trackers, third-party fonts, or marketing email.</li>
+      <li><b>Access:</b> other accounts cannot access your runs through the app. The server operator and service providers can access stored data, so do not enter confidential information or reuse a password.</li>
       <li><b>Retention and deletion:</b> account data and runs remain until you choose “Delete account”; the app then removes your account, sessions and runs. The oldest runs may be removed earlier when storage limits are reached. Hosting backups or logs may persist under the provider's policy. Browser data must be cleared separately.</li>
     </ul>
 

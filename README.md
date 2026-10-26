@@ -6,7 +6,9 @@ from the structure of a case in a product-management casebook: a retention probl
 or numbers are copied from the casebook. A second engine, described under "The venture engine" below, runs eight more cases for five seats:
 a product manager, a chief executive, a growth and strategy head, a developer and a designer.
 
-Node 24 or newer. No dependencies to run. TypeScript is run directly by Node (type stripping).
+Node 24 or newer. Run `npm ci` to install dependencies. TypeScript is run directly by Node (type stripping).
+
+For the linked Neon `production` branch, run `neon deploy` and `neon env pull` to create or refresh the ignored `.env.local`, then run `npm run build` and `npm run serve:neon`. The latter loads `DATABASE_URL` from `.env.local` and serves at <http://127.0.0.1:4310>. Keep that file and `.neon/` out of Git. Plain `npm run serve` continues to run without Neon for local development.
 
 ```
 schema/scenario.schema.json          the format
@@ -39,7 +41,7 @@ docs/calibration-latest.txt          the last calibration run
 
 ```bash
 node check.mjs                          # validate the scenario file
-node --test "test/**/*.test.ts"         # 116 tests
+node --test "test/**/*.test.ts"         # 118 tests
 node src/server.ts                      # the web interface, at http://127.0.0.1:4310
 node src/calibrate.ts --seeds 200       # every case: bots x seeds, rubric breakdown, rule coverage, invariants
 node src/calibrate.ts --scenario scenarios/learning-in-the-middle.scenario.json   # one case
@@ -58,9 +60,9 @@ except `/api/auth/*` answers 401 without a session, and the app sends you back t
 started it; asking for anyone else's run gets the same 404 as a run that does not exist. Usernames are 3 to 32 letters, digits, dots, dashes or underscores
 (case does not matter); passwords are 8 to 128 characters. Accounts are kept in `data/users.json` (`USERS_FILE` moves it) as scrypt hashes with a salt each,
 written with owner-only permissions where the system has them, and never the password. A session is a random token in an HttpOnly, SameSite=Strict
-cookie, good for seven days. Tokens are saved with accounts, while runs are saved in `data/runs.json` (`RUNS_FILE` moves it); both survive a restart. Five wrong passwords
+cookie, good for seven days. Local mode saves tokens with accounts and runs in `data/runs.json` (`RUNS_FILE` moves it). Hosted mode writes both to Postgres via `DATABASE_URL`; both survive a restart. Five wrong passwords
 for an account lock it for a minute. There is no password reset or email: anyone who forgets a password must create a new account. The local server listens on 127.0.0.1;
-hosted mode requires `PUBLIC_ORIGIN`, `CONTACT_EMAIL`, and durable storage. The account owner can delete their account and runs in the top bar. See [PUBLIC_LAUNCH_READINESS.md](PUBLIC_LAUNCH_READINESS.md) for deployment.
+hosted mode requires a public origin (`RENDER_EXTERNAL_URL` is automatic on Render), `CONTACT_EMAIL`, and `DATABASE_URL`. The account owner can delete their account and runs in the top bar. See [PUBLIC_LAUNCH_READINESS.md](PUBLIC_LAUNCH_READINESS.md) for deployment.
 
 | Screen | What it does |
 |---|---|
