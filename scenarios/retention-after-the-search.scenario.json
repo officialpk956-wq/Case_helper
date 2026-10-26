@@ -1,0 +1,774 @@
+{
+  "_notes": [
+    "DRAFT v0.1. All numbers are illustrative placeholders: the source casebook has none. Calibrate with the bots in `calibration` before anything is shown to players.",
+    "Engine-private. Never send this file to the browser: build a public projection (company, segments, metrics, levers minus `effects`, clarify questions minus `answer` until asked) and keep hidden_variables, lever effects, events and the rubric rules server-side.",
+    "Original fictional company and original text. Inspired by the structure of a retention product case (use case / frequency / intensity), not copied from it.",
+    "Run a trademark search on the company name before any public use."
+  ],
+  "schema_version": "0.1",
+  "id": "retention_after_the_search",
+  "title": "After the Search: bringing job seekers back",
+  "version": "0.1.0",
+  "stages": [{ "id": "during_search", "label": "During search" }, { "id": "post_placement", "label": "After placement" }],
+  "meta": {
+    "domain": "product",
+    "audience": ["pm-aspirant", "apm", "product-student"],
+    "est_minutes": 40,
+    "locale": "en-IN",
+    "inspiration": "A retention case for a job-search platform: use-case, frequency and intensity levers, where the root cause is that sessions are only a few seconds long.",
+    "rights_note": "Original scenario. No text, company names or numbers are taken from the source casebook."
+  },
+
+  "company": {
+    "name": "Larkspur Jobs",
+    "one_liner": "A mid-size Indian job portal with 2.4 million monthly active job seekers.",
+    "stage": "Series C, profitable on recruiter subscriptions",
+    "market": "India, price-sensitive, mobile-first",
+    "business_model": "Recruiters pay for listings and resume access. Job seekers use the app free.",
+    "product": "The seeker app: search, apply, track applications, get alerts.",
+    "brief": "You are the product manager for the seeker app. Recruiters buy Larkspur because seekers are here, and seekers leave the moment they land a job or pause their search. Leadership wants more seekers coming back within 30 days, and wants the ones who just got hired to stay for at least two months. You have four cycles of six weeks. Nobody has told you why people leave.",
+    "stakeholders": [
+      { "id": "nikhil_rao", "name": "Nikhil Rao", "role": "CEO", "stance": "Loves community features and has asked for peer groups twice." },
+      { "id": "asha_verma", "name": "Asha Verma", "role": "Chief Product Officer, your manager", "stance": "Wants evidence before the roadmap changes. Reads your update at the end of every cycle." },
+      { "id": "dev_kulkarni", "name": "Dev Kulkarni", "role": "Head of Engineering", "stance": "Warns that nothing personalised works without better instrumentation." },
+      { "id": "ira_sen", "name": "Ira Sen", "role": "Head of Growth", "stance": "Wants more notifications. Her team owns the opt-out number." }
+    ]
+  },
+
+  "timeline": {
+    "cycles": 4,
+    "cycle_weeks": 6,
+    "cycle_briefs": [
+      { "n": 1, "title": "Find out what is actually happening", "brief": "You have a goal and no diagnosis. Decide what to ask, what to measure and what to look at before you build anything." },
+      { "n": 2, "title": "Build what the evidence supports", "brief": "You know more than you did. Commit capacity to the bets you can defend, and say what you expect to happen." },
+      { "n": 3, "title": "The market moves", "brief": "Something outside the product changes. How much it costs depends on what you put in place earlier." },
+      { "n": 4, "title": "Pay for it, or prove it", "brief": "Leadership wants a monetisation call. The numbers you collected decide whether your answer holds up." }
+    ]
+  },
+
+  "segments": [
+    {
+      "id": "active_applicants",
+      "name": "Active applicants",
+      "share": 0.55,
+      "description": "Searching and applying right now. They open the app to check what happened to their applications.",
+      "baseline": { "weekly_sessions": 3.2, "session_seconds": 24, "return_30d": 0.27, "notif_opt_out": 0.20 }
+    },
+    {
+      "id": "passive_browsers",
+      "name": "Passive browsers",
+      "share": 0.30,
+      "description": "Employed and curious. They look at the market now and then.",
+      "baseline": { "weekly_sessions": 0.9, "session_seconds": 18, "return_30d": 0.09, "notif_opt_out": 0.26 }
+    },
+    {
+      "id": "recently_placed",
+      "name": "Recently placed",
+      "share": 0.15,
+      "description": "Got a job through Larkspur in the last 60 days. Most stop opening the app.",
+      "baseline": { "weekly_sessions": 0.5, "session_seconds": 15, "return_30d": 0.05, "notif_opt_out": 0.25 }
+    }
+  ],
+
+  "metrics": [
+    { "id": "return_30d", "label": "30-day return rate", "unit": "share of seekers", "kind": "outcome", "definition": "Share of seekers who come back within 30 days to search or engage.", "visible_from_instrumentation": 0, "noise_scale": 0.3 },
+    { "id": "weekly_sessions", "label": "Weekly sessions per user", "unit": "sessions", "kind": "input", "definition": "Average app sessions per seeker per week.", "visible_from_instrumentation": 0 },
+    { "id": "session_seconds", "label": "Median session length", "unit": "seconds", "kind": "input", "definition": "Median time in app per session. Needs session events to measure.", "visible_from_instrumentation": 1 },
+    { "id": "mau", "label": "Monthly active users", "unit": "users", "kind": "vanity", "definition": "Distinct seekers active in the last 30 days. Moves with marketing as much as with product.", "visible_from_instrumentation": 0 },
+    { "id": "notif_opt_out", "label": "Notification opt-out rate", "unit": "share of seekers", "kind": "guardrail", "definition": "Share of seekers who have turned off notifications.", "visible_from_instrumentation": 0 },
+    { "id": "post_placement_engagement", "label": "Post-placement engagement", "unit": "share of placed seekers", "kind": "outcome", "definition": "Share of recently placed seekers active at least once a month for two months.", "visible_from_instrumentation": 1 }
+  ],
+
+  "capacity": { "eng_sprints_per_cycle": 8, "clarify_tokens": 6, "experiment_slots_per_cycle": 2, "experiment_slots_final_cycle": 3 },
+
+  "case_facts": {
+    "tracking": [
+      { "id": "none", "weight": 0.6, "instrumentation_level": 0 },
+      { "id": "sessions", "weight": 0.4, "instrumentation_level": 1 }
+    ],
+    "backing": [
+      { "id": "any", "weight": 0.1, "max_bets": 5 },
+      { "id": "one", "weight": 0.3, "max_bets": 1 },
+      { "id": "two", "weight": 0.4, "max_bets": 2 },
+      { "id": "three", "weight": 0.2, "max_bets": 3 }
+    ],
+    "scope": [
+      { "id": "both", "weight": 0.5, "stages": ["during_search", "post_placement"] },
+      { "id": "during_search", "weight": 0.25, "stages": ["during_search"] },
+      { "id": "post_placement", "weight": 0.25, "stages": ["post_placement"] }
+    ]
+  },
+
+  "engine": {
+    "ramp_first_live_cycle": 0.5,
+    "return_30d_cap": 0.9,
+    "opt_out_cap": 0.95,
+    "opt_out_persistence": 0.7,
+    "opt_out_return_penalty": 1.5,
+    "notif_return_per_session_lift": 0.5,
+    "notification_baseline": { "volume": { "active_applicants": 2, "passive_browsers": 1, "recently_placed": 0.5 }, "targeting": "broadcast" },
+    "event_persistence": [1.0, 0.5],
+    "event_max_mitigation": 0.9,
+    "population": 2400000,
+    "mau_sessions_elasticity": 0.4,
+    "mau_wobble_sd": 0.03,
+    "post_placement_segment": "recently_placed",
+    "post_placement_engagement_per_return": 0.6,
+    "movement_thresholds": { "flat_below": 0.03, "small_below": 0.12 },
+    "test_ship_threshold": 0.03,
+    "test_kill_threshold": 0.01,
+    "guardrail_breach_abs": 0.02,
+    "quality_scaled_levers": { "article_feed": "feed_quality_curve" },
+    "test_reveals": { "notification_policy": ["notif_fatigue_ceiling"], "peer_groups": ["group_activation"], "subscription_offer": ["price_sensitivity"], "fee_offer": ["attribution_gap"] },
+    "variation": {
+      "effect_sd": 0.45,
+      "hidden": {
+        "notif_fatigue_ceiling": { "sd": 0.25, "min_multiple_of_baseline_volume": 1.25 },
+        "attribution_gap": { "sd": 0.45, "min": 0.12, "max": 0.85 },
+        "price_sensitivity": { "sd": 0.6 }
+      }
+    },
+    "reveal": { "noisy_sd": 0.35, "directional_sd": 0.2, "bucket_ratio": 1.33 }
+  },
+
+  "levers": [
+    {
+      "id": "instrumentation_v1", "name": "Session event tracking", "kind": "foundation", "category": "measurement",
+      "stages": ["during_search", "post_placement"], "cost_sprints": 2, "lead_cycles": 0, "available_from_cycle": 1,
+      "params": { "sets_instrumentation_level": 1 },
+      "description": "Track what people do inside a session, not just that they opened the app. Switched on at the start of the cycle, so the data is there by the end of it.",
+      "player_prior": "Unglamorous but cheap. Nothing user-facing changes.",
+      "risk": "Pays off only if you use the data."
+    },
+    {
+      "id": "instrumentation_v2", "name": "Event pipeline and experiment platform", "kind": "foundation", "category": "measurement",
+      "stages": ["during_search", "post_placement"], "cost_sprints": 3, "lead_cycles": 1, "available_from_cycle": 1,
+      "requires": { "levers": ["instrumentation_v1"] },
+      "params": { "sets_instrumentation_level": 2 },
+      "description": "A proper pipeline: cleaner readouts, per-user history, and the base for personalisation.",
+      "player_prior": "Engineering says personalisation needs this.",
+      "risk": "Three sprints that no user will ever see."
+    },
+    {
+      "id": "user_interviews", "name": "User interviews", "kind": "research", "category": "research",
+      "stages": ["during_search", "post_placement"], "cost_sprints": 1, "lead_cycles": 0, "available_from_cycle": 1,
+      "params": { "covers_segments": "all" },
+      "reveals_hidden": ["segment_response", "price_sensitivity"],
+      "description": "Talk to a sample from each segment about why they open the app and why they stop.",
+      "player_prior": "Qualitative. Good for the why, weak for the how much.",
+      "risk": "Small samples can mislead."
+    },
+    {
+      "id": "session_analytics", "name": "Session analytics review", "kind": "research", "category": "research",
+      "stages": ["during_search", "post_placement"], "cost_sprints": 1, "lead_cycles": 0, "available_from_cycle": 1,
+      "requires": { "instrumentation_level": 1 },
+      "reveals_hidden": ["skim_behaviour"],
+      "description": "Analyse what seekers actually do in a session.",
+      "player_prior": "Only possible once session events are being tracked.",
+      "risk": "You may find something you did not plan for."
+    },
+    {
+      "id": "placed_exit_survey", "name": "Placed-seeker exit survey", "kind": "research", "category": "research",
+      "stages": ["post_placement"], "cost_sprints": 1, "lead_cycles": 0, "available_from_cycle": 1,
+      "params": { "covers_segments": ["recently_placed"] },
+      "reveals_hidden": ["segment_response", "attribution_gap", "price_sensitivity"],
+      "description": "Ask people who just got hired why they are leaving, what they would pay for, and how they found the job.",
+      "player_prior": "Cheap and fast, but only covers one segment.",
+      "risk": "Self-reported answers are optimistic."
+    },
+    {
+      "id": "application_tracker", "name": "Application status tracker", "kind": "build", "category": "use_case",
+      "stages": ["during_search"], "cost_sprints": 3, "lead_cycles": 1, "available_from_cycle": 1,
+      "effects": {
+        "active_applicants": { "weekly_sessions_rel": 0.18, "session_seconds_rel": 0.05, "return_30d_rel": 0.06 },
+        "passive_browsers": { "weekly_sessions_rel": 0.03, "return_30d_rel": 0.01 }
+      },
+      "description": "Show where each application stands and notify on changes.",
+      "player_prior": "Teams usually see more return visits from people mid-search.",
+      "risk": "Does nothing for people who are not applying."
+    },
+    {
+      "id": "article_feed", "name": "Short career-article feed", "kind": "build", "category": "intensity",
+      "stages": ["during_search", "post_placement"], "cost_sprints": 4, "lead_cycles": 1, "available_from_cycle": 1,
+      "requires": { "instrumentation_level": 1 },
+      "effects": {
+        "active_applicants": { "weekly_sessions_rel": 0.04, "session_seconds_rel": 0.55, "return_30d_rel": 0.07 },
+        "passive_browsers": { "weekly_sessions_rel": 0.10, "session_seconds_rel": 0.70, "return_30d_rel": 0.14 },
+        "recently_placed": { "weekly_sessions_rel": 0.12, "session_seconds_rel": 0.60, "return_30d_rel": 0.12 }
+      },
+      "description": "A feed of short articles ranked by what each seeker reads.",
+      "player_prior": "Content lifts time in app. Quality depends on how much data you have.",
+      "risk": "A weak feed gets ignored."
+    },
+    {
+      "id": "peer_groups", "name": "Peer and alumni groups", "kind": "build", "category": "use_case",
+      "stages": ["during_search", "post_placement"], "cost_sprints": 4, "lead_cycles": 1, "available_from_cycle": 1,
+      "soft_requires": { "levers": ["article_feed"], "else_multiplier": 0.25 },
+      "effects": {
+        "active_applicants": { "weekly_sessions_rel": 0.05, "session_seconds_rel": 0.15, "return_30d_rel": 0.06 },
+        "passive_browsers": { "weekly_sessions_rel": 0.02, "session_seconds_rel": 0.05, "return_30d_rel": 0.02 },
+        "recently_placed": { "weekly_sessions_rel": 0.04, "session_seconds_rel": 0.10, "return_30d_rel": 0.10 }
+      },
+      "description": "Discussion groups by role, city and alumni network.",
+      "player_prior": "Community features are often described as step changes in engagement.",
+      "risk": "Empty groups feel worse than no groups."
+    },
+    {
+      "id": "course_partnerships", "name": "Course partnerships", "kind": "build", "category": "use_case",
+      "stages": ["post_placement"], "cost_sprints": 3, "lead_cycles": 1, "available_from_cycle": 1,
+      "effects": {
+        "recently_placed": { "weekly_sessions_rel": 0.20, "session_seconds_rel": 0.50, "return_30d_rel": 0.25 },
+        "active_applicants": { "weekly_sessions_rel": 0.02, "session_seconds_rel": 0.05, "return_30d_rel": 0.03 },
+        "passive_browsers": { "weekly_sessions_rel": 0.03, "session_seconds_rel": 0.10, "return_30d_rel": 0.05 }
+      },
+      "description": "License third-party courses and certifications inside the app.",
+      "player_prior": "A contract takes a cycle. Good for people who want to grow.",
+      "risk": "You are not an education company, and paid courses meet price resistance."
+    },
+    {
+      "id": "notification_policy", "name": "Notification policy", "kind": "dial", "category": "frequency",
+      "stages": ["during_search", "post_placement"], "cost_sprints": 1, "lead_cycles": 0, "available_from_cycle": 1,
+      "params": {
+        "volume_per_week_range": [0, 10],
+        "targeting_options": ["broadcast", "rules", "preference_model"],
+        "model": {
+          "gain_weekly_sessions_rel_per_vol_pow_0_6": { "active_applicants": 0.10, "passive_browsers": 0.05, "recently_placed": 0.02 },
+          "targeting_multiplier": { "broadcast": 0.6, "rules": 1.0, "preference_model": 1.5 },
+          "opt_out_abs_per_notification_over_ceiling": 0.03
+        }
+      },
+      "reveals_hidden": [],
+      "description": "Set how many notifications each segment gets per week, and how they are targeted.",
+      "player_prior": "More notifications mean more opens, up to a point nobody has measured.",
+      "risk": "Fatigue shows up as opt-outs, and the damage lasts."
+    },
+    {
+      "id": "preference_targeting", "name": "Preference-based targeting", "kind": "foundation", "category": "frequency",
+      "stages": ["during_search", "post_placement"], "cost_sprints": 3, "lead_cycles": 1, "available_from_cycle": 2,
+      "requires": { "instrumentation_level": 2 },
+      "params": { "unlocks_targeting": "preference_model", "needs_consent_flow": true },
+      "description": "Use each seeker's history and stated interests to decide who gets which notification.",
+      "player_prior": "Targeting makes each notification worth more. It needs data and consent.",
+      "risk": "A weak model is no better than a broadcast."
+    },
+    {
+      "id": "in_session_interactions", "name": "Save, follow and comment", "kind": "build", "category": "intensity",
+      "stages": ["during_search", "post_placement"], "cost_sprints": 2, "lead_cycles": 0, "available_from_cycle": 2,
+      "requires": { "levers": ["article_feed"] },
+      "effects": {
+        "active_applicants": { "session_seconds_rel": 0.20, "return_30d_rel": 0.02 },
+        "passive_browsers": { "session_seconds_rel": 0.25, "return_30d_rel": 0.04 },
+        "recently_placed": { "session_seconds_rel": 0.20, "return_30d_rel": 0.05 }
+      },
+      "description": "Let seekers save articles, follow topics and comment.",
+      "player_prior": "Interaction deepens a session once there is something to interact with.",
+      "risk": "Needs a feed worth interacting with."
+    },
+    {
+      "id": "ab_test", "name": "A/B test", "kind": "experiment", "category": "research",
+      "stages": ["during_search", "post_placement"], "cost_sprints": 0.5, "lead_cycles": 0, "available_from_cycle": 1,
+      "params": { "sample_pct_range": [5, 50], "weeks_range": [1, 6], "tests_any_live_or_pending_lever": true },
+      "reveals_hidden": ["notif_fatigue_ceiling", "group_activation", "price_sensitivity", "attribution_gap"],
+      "description": "Test one lever on one segment before you roll it out. You choose the sample and the duration.",
+      "player_prior": "Small samples and short tests give noisy answers.",
+      "risk": "Stopping early because the number looks good is how teams fool themselves."
+    },
+    {
+      "id": "subscription_offer", "name": "Pricing test: premium subscription", "kind": "offer", "category": "research",
+      "stages": ["during_search", "post_placement"], "cost_sprints": 0, "lead_cycles": 0, "available_from_cycle": 1,
+      "description": "Show a sample of one segment the premium offer at its planned price and count who would sign up. You choose the sample and the duration, as with any test. The test costs what an A/B test costs and uses one of its slots.",
+      "player_prior": "People say they would pay more often than they do, but a real offer shown to a real sample is the nearest thing to an answer.",
+      "risk": "A short test on a small sample is mostly noise, and it only tells you about the segment you showed it to."
+    },
+    {
+      "id": "fee_offer", "name": "Pricing test: success fee", "kind": "offer", "category": "research",
+      "stages": ["during_search", "post_placement"], "cost_sprints": 0, "lead_cycles": 0, "available_from_cycle": 1,
+      "description": "Offer a sample of seekers a success fee on placement and see how many placements can be traced back to Larkspur to bill. The test costs what an A/B test costs and uses one of its slots.",
+      "player_prior": "A fee only pays on placements you can prove were yours.",
+      "risk": "A short test on a small sample is mostly noise."
+    },
+    {
+      "id": "cohort_holdout", "name": "Cohort holdout", "kind": "holdout", "category": "research",
+      "stages": ["during_search", "post_placement"], "cost_sprints": 0, "lead_cycles": 0, "available_from_cycle": 1,
+      "description": "Keep a sample of the base off everything shipped this quarter for the test's duration, and read the 30-day return of that cohort and of everyone else. It covers the whole base, so the segment you name does not matter. You choose the sample and the duration, as with any test. The test costs what an A/B test costs and uses one of its slots.",
+      "player_prior": "The gap between the two cohorts is what your work did. The number for everyone else is what the base now retains, market included, and that is what retention is worth to a recruiter.",
+      "risk": "A small holdout reads the withheld cohort noisily. A large one leaves the rest of the base less to read, and in practice withholds more people from what you built."
+    }
+  ],
+
+  "hidden_variables": [
+    {
+      "id": "skim_behaviour",
+      "player": { "label": "How sessions actually look" },
+      "description": "The real reason sessions are short: most seekers open the app only to glance at status updates and leave.",
+      "truth": { "median_session_seconds": 22, "share_status_check_only": 0.8 },
+      "reveal": { "via": [{ "kind": "lever", "ref": "session_analytics" }], "fidelity": "exact", "after_cycles": 0 }
+    },
+    {
+      "id": "segment_response",
+      "player": { "label": "What each segment responds to" },
+      "description": "What each segment actually responds to: the return lift every lever gives it. Derived from the world's own lever effects, so it always agrees with them.",
+      "truth": { "derived_from": "lever_effects" },
+      "reveal": { "via": [{ "kind": "lever", "ref": "user_interviews", "fidelity": "directional" }, { "kind": "lever", "ref": "placed_exit_survey", "fidelity": "noisy" }], "fidelity": "directional", "after_cycles": 0 }
+    },
+    {
+      "id": "notif_fatigue_ceiling",
+      "player": { "label": "Weekly notifications before opt-outs climb" },
+      "description": "Weekly notifications per user beyond which opt-outs climb.",
+      "truth": { "active_applicants": 5, "passive_browsers": 2, "recently_placed": 1 },
+      "reveal": { "via": [{ "kind": "lever", "ref": "ab_test", "fidelity": "noisy" }, { "kind": "clarify", "ref": "notif_constraints", "fidelity": "directional" }], "fidelity": "noisy", "after_cycles": 0 }
+    },
+    {
+      "id": "attribution_gap",
+      "player": { "label": "Placements we cannot trace to Larkspur", "percent": true },
+      "description": "Share of placements Larkspur cannot trace back to its own platform.",
+      "truth": 0.45,
+      "reveal": { "via": [{ "kind": "lever", "ref": "placed_exit_survey", "fidelity": "noisy" }, { "kind": "clarify", "ref": "monetisation_plans", "fidelity": "directional" }, { "kind": "lever", "ref": "ab_test", "fidelity": "noisy" }], "fidelity": "directional", "after_cycles": 0 }
+    },
+    {
+      "id": "price_sensitivity",
+      "player": { "label": "Share who would pay for a premium tier", "percent": true },
+      "description": "Share of each segment that would pay for a premium subscription at a realistic price.",
+      "truth": { "active_applicants": 0.004, "passive_browsers": 0.0005, "recently_placed": 0.01 },
+      "reveal": { "via": [{ "kind": "lever", "ref": "user_interviews", "fidelity": "noisy" }, { "kind": "lever", "ref": "placed_exit_survey", "fidelity": "noisy" }, { "kind": "clarify", "ref": "monetisation_plans", "fidelity": "directional" }, { "kind": "lever", "ref": "ab_test", "fidelity": "noisy" }], "fidelity": "directional", "after_cycles": 0 }
+    },
+    {
+      "id": "feed_quality_curve",
+      "player": { "label": "How good the article feed is at each level of tracking" },
+      "description": "How good the article feed is at each instrumentation level; scales its true effect.",
+      "truth": { "0": 0.4, "1": 0.6, "2": 0.85, "3": 1.0 },
+      "reveal": { "via": [], "fidelity": "none", "after_cycles": 2 }
+    },
+    {
+      "id": "group_activation",
+      "player": { "label": "What peer groups need before they work" },
+      "description": "Peer groups only work once the app has an engaged base to fill them.",
+      "truth": { "needs_lever": "article_feed", "multiplier_without": 0.25 },
+      "reveal": { "via": [{ "kind": "lever", "ref": "ab_test" }], "fidelity": "noisy", "after_cycles": 0 }
+    }
+  ],
+
+  "measurement": {
+    "instrumentation_levels": [
+      { "level": 0, "label": "Page views and opens only", "noise_sd": 0.30 },
+      { "level": 1, "label": "Session events", "noise_sd": 0.15 },
+      { "level": 2, "label": "Event pipeline and experiment platform", "noise_sd": 0.08 }
+    ],
+    "experiment": { "base_noise_sd": 0.12, "min_weeks": 2, "min_sample_pct": 10, "peek_penalty_sd": 0.08 }
+  },
+
+  "clarify": {
+    "questions": [
+      { "id": "why_retention", "text": "Why does retention matter to the business right now?", "relevance": "high", "answer": { "by": "threat", "cases": {
+        "competitor_free_courses": { "text": "Recruiters renew when seekers keep showing up, and a seeker who leaves after placement is gone for years. The target is a higher 30-day return rate. Asha's main worry this quarter is what the rivals are planning for the people they place.", "learns": { "watch": "competitors" } },
+        "job_supply_dip": { "text": "Recruiters renew when seekers keep showing up, and a seeker who leaves after placement is gone for years. The target is a higher 30-day return rate. Asha's main worry this quarter is what the hiring market is doing.", "learns": { "watch": "hiring_market" } },
+        "notification_bug": { "text": "Recruiters renew when seekers keep showing up, and a seeker who leaves after placement is gone for years. The target is a higher 30-day return rate. Asha's main worry this quarter is how reliable the alert provider is.", "learns": { "watch": "alert_provider" } }
+      } } },
+      { "id": "focus_users", "text": "Which users are we talking about?", "relevance": "high", "answer": { "by": "scope", "cases": {
+        "both": { "text": "Seekers who have already applied: those still searching, and those hired in the last two months. We are not chasing brand-new sign-ups.", "learns": { "scope": "both" } },
+        "during_search": { "text": "Seekers who are still searching. What happens after someone is hired belongs to the community team this quarter, so keep out of it.", "learns": { "scope": "during_search" } },
+        "post_placement": { "text": "Seekers hired in the last two months. Search belongs to the marketplace team this quarter, so keep out of it.", "learns": { "scope": "post_placement" } }
+      } } },
+      { "id": "define_retained", "text": "How do we define a retained user?", "relevance": "high", "answer": "Back within 30 days to search or engage. For someone just placed, active at least once a month for two months." },
+      { "id": "time_horizon", "text": "What is the time horizon?", "relevance": "medium", "answer": "Four cycles of six weeks. Leadership reviews at the end of the fourth." },
+      { "id": "scope_networking", "text": "Are professional networking and lead generation in scope?", "relevance": "medium", "answer": "No. Job seekers only." },
+      { "id": "current_data", "text": "What do we know today about what people do inside a session?", "relevance": "high", "answer": { "by": "tracking", "cases": {
+        "none": { "text": "Very little. We log opens and page views. We cannot see what happens within a session.", "learns": { "tracking": "none" } },
+        "sessions": { "text": "More than you would think. Session events have been logged for a year, though nobody has analysed them.", "learns": { "tracking": "sessions" } }
+      } } },
+      { "id": "eng_capacity", "text": "How much engineering capacity do I have, and how many bets will leadership back?", "relevance": "high", "answer": { "by": "backing", "cases": {
+        "any": { "text": "Whatever the planning screen shows each cycle. It is shared across everything you choose: tracking, research, builds, the notification dial and each test. Leadership has not capped how many bets you run.", "learns": { "bets": "5" } },
+        "one": { "text": "Whatever the planning screen shows each cycle. It is shared across everything you choose: tracking, research, builds, the notification dial and each test. Leadership will back one bet this quarter. A build you start after the first is held at the review and does not ship.", "learns": { "bets": "1" } },
+        "two": { "text": "Whatever the planning screen shows each cycle. It is shared across everything you choose: tracking, research, builds, the notification dial and each test. Leadership will back two bets this quarter. A build you start after the first two is held at the review and does not ship.", "learns": { "bets": "2" } },
+        "three": { "text": "Whatever the planning screen shows each cycle. It is shared across everything you choose: tracking, research, builds, the notification dial and each test. Leadership will back three bets this quarter. A build you start after the first three is held at the review and does not ship.", "learns": { "bets": "3" } }
+      } } },
+      { "id": "notif_constraints", "text": "Are there constraints on notifications or personalisation?", "relevance": "high", "answer": "About 22 percent of seekers have already turned notifications off. Personalising by behaviour needs a consent flow.", "reveals": ["notif_fatigue_ceiling"] },
+      { "id": "competitors", "text": "What are competitors doing?", "relevance": "medium", "signal_for": ["competitor_free_courses"], "answer": { "by": "threat", "cases": {
+        "competitor_free_courses": { "text": "A rival has just announced free certified courses for everyone it places, starting next quarter. Nobody has solved post-placement retention, and they intend to.", "learns": { "threat": "competitor_free_courses" } },
+        "job_supply_dip": { "text": "Two rivals offer job alerts. One has started adding learning content. Nothing new is planned." },
+        "notification_bug": { "text": "Two rivals offer job alerts. One has started adding learning content. Nothing new is planned." }
+      } } },
+      { "id": "hiring_market", "text": "What is happening in the hiring market?", "relevance": "medium", "signal_for": ["job_supply_dip"], "answer": { "by": "threat", "cases": {
+        "competitor_free_courses": { "text": "Steady. Nothing unusual for the season." },
+        "job_supply_dip": { "text": "Employers have started freezing hiring. Listings are expected to fall by about a quarter within weeks.", "learns": { "threat": "job_supply_dip" } },
+        "notification_bug": { "text": "Steady. Nothing unusual for the season." }
+      } } },
+      { "id": "alert_provider", "text": "How reliable is our push notification provider?", "relevance": "medium", "signal_for": ["notification_bug"], "answer": { "by": "threat", "cases": {
+        "competitor_free_courses": { "text": "No incidents in the last year." },
+        "job_supply_dip": { "text": "No incidents in the last year." },
+        "notification_bug": { "text": "Two incidents this quarter, and a third is likely. When it misfires, people near their limit turn alerts off.", "learns": { "threat": "notification_bug" } }
+      } } },
+      { "id": "monetisation_plans", "text": "Is leadership considering charging seekers?", "relevance": "medium", "answer": "It is open and will be decided at the end. The market is very price sensitive, and we cannot always tell whether a placement came from us.", "reveals": ["attribution_gap", "price_sensitivity"] },
+      { "id": "ceo_favourite", "text": "Is there a feature leadership already likes?", "relevance": "medium", "answer": "Nikhil is keen on peer groups. That is a preference, not a finding.", "bias_trap": true },
+      { "id": "office_count", "text": "How many offices does the company have?", "relevance": "low", "answer": "Three. It does not change the problem." }
+    ]
+  },
+
+  "reflection": {
+    "prompts": [
+      {
+        "id": "root_cause", "text": "What do you believe is the main reason seekers do not come back?", "kind": "single_choice",
+        "options": [
+          { "id": "not_enough_use_cases", "label": "There are not enough reasons to open the app" },
+          { "id": "frequency_too_low", "label": "We do not remind people often enough" },
+          { "id": "sessions_too_shallow", "label": "People open it, glance and leave" },
+          { "id": "price", "label": "People will not pay, so they leave" },
+          { "id": "content_quality", "label": "What we show them is not good enough" },
+          { "id": "need_more_data", "label": "I do not know yet and need more data" }
+        ],
+        "truth": { "hidden_variable": "skim_behaviour", "correct": ["sessions_too_shallow"], "acceptable_until_cycle": { "need_more_data": 1 } }
+      },
+      { "id": "funded", "text": "What did you fund this cycle?", "kind": "multi_choice", "truth": { "source": "decisions" } },
+      { "id": "sacrificed", "text": "What did you deliberately choose not to fund?", "kind": "multi_choice", "truth": { "source": "unfunded_levers" } },
+      {
+        "id": "primary_metric", "text": "Which metric will tell you whether this worked?", "kind": "single_choice",
+        "options": [
+          { "id": "return_30d", "label": "30-day return rate" },
+          { "id": "weekly_sessions", "label": "Weekly sessions per user" },
+          { "id": "session_seconds", "label": "Median session length" },
+          { "id": "mau", "label": "Monthly active users" },
+          { "id": "post_placement_engagement", "label": "Post-placement engagement" }
+        ],
+        "truth": { "correct": ["return_30d"], "acceptable": ["post_placement_engagement", "session_seconds"], "trap": ["mau"] }
+      },
+      {
+        "id": "guardrail_metric", "text": "Which metric must not get worse while you chase it?", "kind": "single_choice",
+        "options": [
+          { "id": "notif_opt_out", "label": "Notification opt-out rate" },
+          { "id": "weekly_sessions", "label": "Weekly sessions per user" },
+          { "id": "none", "label": "None" }
+        ],
+        "truth": { "correct": ["notif_opt_out"] }
+      },
+      {
+        "id": "expected_movement", "text": "What do you expect the 30-day return rate to do this cycle?", "kind": "scale",
+        "options": [
+          { "id": "down", "label": "Fall" },
+          { "id": "flat", "label": "Stay flat" },
+          { "id": "up_small", "label": "Rise a little" },
+          { "id": "up_large", "label": "Rise a lot" }
+        ],
+        "truth": { "rule": "compare_to_actual_return_30d_change", "tolerance": 0.2 }
+      }
+    ]
+  },
+
+  "events": {
+    "selection": "seeded",
+    "cycle": 3,
+    "pool": [
+      {
+        "id": "competitor_free_courses", "name": "A rival gives away courses", "weight": 0.40,
+        "signal": "Two-week return among recently placed seekers has dipped, and a rival has announced free certified courses.",
+        "body": "A competitor is offering free certifications to anyone it has placed. Your recently placed seekers have a new reason to leave, and a new place to go.",
+        "effects": { "recently_placed": { "return_30d_rel": -0.30, "weekly_sessions_rel": -0.15 }, "passive_browsers": { "return_30d_rel": -0.08 } },
+        "mitigations": [
+          { "when": { "fn": "lever_live", "params": { "lever": "course_partnerships" } }, "factor": 0.60 },
+          { "when": { "fn": "research_done", "params": { "lever": "placed_exit_survey" } }, "factor": 0.20 }
+        ]
+      },
+      {
+        "id": "job_supply_dip", "name": "A hiring freeze", "weight": 0.35,
+        "signal": "Active listings fell by a quarter in a fortnight and applicants are opening the app less.",
+        "body": "A wave of hiring freezes means fewer jobs to apply to. People who are searching have less to do.",
+        "effects": { "active_applicants": { "weekly_sessions_rel": -0.15, "return_30d_rel": -0.10 }, "passive_browsers": { "weekly_sessions_rel": -0.05 } },
+        "mitigations": [
+          { "when": { "fn": "lever_live", "params": { "lever": "application_tracker" } }, "factor": 0.40 },
+          { "when": { "fn": "lever_live", "params": { "lever": "article_feed" } }, "factor": 0.30 }
+        ]
+      },
+      {
+        "id": "notification_bug", "name": "A notification provider fault", "weight": 0.25,
+        "signal": "Opt-outs spiked overnight and support tickets mention duplicate alerts.",
+        "body": "Your push provider sent duplicates for two days. People who were already near their limit turned notifications off.",
+        "effects": { "active_applicants": { "notif_opt_out_abs": 0.06 }, "passive_browsers": { "notif_opt_out_abs": 0.06 }, "recently_placed": { "notif_opt_out_abs": 0.06 } },
+        "mitigations": [
+          { "when": { "fn": "notif_volume_at_most_share_of_ceiling", "params": { "share": 0.5 } }, "factor": 0.70 }
+        ]
+      }
+    ]
+  },
+
+  "rubric": {
+    "level_factors": { "full": 1.0, "part": 0.5, "none": 0.0 },
+    "bands": [
+      { "min": 90, "label": "Exceptional" },
+      { "min": 75, "label": "Strong" },
+      { "min": 60, "label": "Competent" },
+      { "min": 40, "label": "Weak" },
+      { "min": 0, "label": "Poor" }
+    ],
+    "traits": [
+      {
+        "id": "problem_framing", "name": "Problem framing", "weight": 15,
+        "subcriteria": [
+          {
+            "id": "asked_what_mattered", "label": "Asked the questions that mattered",
+            "rule": { "fn": "clarify_quality", "params": { "full": { "high_min": 4, "low_max": 1 }, "part": { "high_min": 2 } } },
+            "evidence": { "full": "Asked {high_asked} of {high_total} core questions and the one this quarter's worry pointed to, and {low_asked} that did not matter.", "part": "Asked {high_asked} of {high_total} questions that mattered.", "none": "Asked {high_asked} of {high_total} questions that mattered before committing." }
+          },
+          {
+            "id": "metric_before_build", "label": "Defined success before building",
+            "rule": { "fn": "metric_defined_before_build", "params": { "by_cycle": 1 } },
+            "backed_by": { "any_of": [{ "clarify": "define_retained" }, { "clarify": "why_retention" }], "missing": "Named a primary metric before building, but had not yet asked what a retained user is or why retention matters." },
+            "evidence": { "full": "Named a primary metric in cycle {cycle} before committing build capacity.", "part": "Named a primary metric, but only after committing capacity.", "none": "Built without naming how success would be measured." }
+          },
+          {
+            "id": "scope_declared", "label": "Chose a segment to focus on",
+            "rule": { "fn": "scope_declared", "params": { "by_cycle": 1 } },
+            "backed_by": { "any_of": [{ "reading": "segment_response" }], "missing": "Declared a focus segment up front, but no interview or survey had yet shown which users respond." },
+            "evidence": { "full": "Declared a focus segment ({segment}) up front.", "part": "Focused on a segment, but not until cycle {cycle}.", "none": "Never narrowed the problem to a segment." }
+          },
+          {
+            "id": "diagnosis_correct", "label": "Diagnosed the real cause",
+            "rule": { "fn": "root_cause_diagnosis", "params": {} },
+            "evidence": { "full": "Named '{choice}' as the cause, and the evidence in hand supports it.", "part": "Named '{choice}', which is {why}.", "none": "Named '{choice}', which the evidence does not support." }
+          }
+        ]
+      },
+      {
+        "id": "user_empathy", "name": "User empathy and segmentation", "weight": 15,
+        "subcriteria": [
+          {
+            "id": "listened_first", "label": "Listened to users before building for them",
+            "rule": { "fn": "research_before_segment_build", "params": { "min_research": 1 } },
+            "evidence": { "full": "All {builds} builds followed research on their segment.", "part": "{researched} of {builds} builds followed research on their segment.", "none": "No build has yet been backed by research on its segment." }
+          },
+          {
+            "id": "levers_fit_segments", "label": "Matched the lever to the segment it works for",
+            "rule": { "fn": "lever_segment_fit", "params": { "top_k": 2, "full_share": 0.6, "part_share": 0.35 } },
+            "evidence": { "full": "{share} of capacity went to levers that move your focus segment most.", "part": "{share} of capacity went to levers that suit your focus segment.", "none": "{share} of capacity went where it moves your focus segment." }
+          },
+          {
+            "id": "whole_journey", "label": "Covered the whole user journey",
+            "rule": { "fn": "journey_coverage", "params": { "stages": ["during_search", "post_placement"] } },
+            "evidence": { "full": "Covered every stage this quarter's brief puts in scope.", "part": "Covered only the {stage} stage.", "none": "No lever reached a stage that was in scope." }
+          }
+        ]
+      },
+      {
+        "id": "prioritisation", "name": "Prioritisation", "weight": 15,
+        "subcriteria": [
+          {
+            "id": "estimates_calibrated", "label": "Estimated reach, impact and effort realistically",
+            "rule": { "fn": "rice_calibration", "params": { "full_rank_corr": 0.5, "part_rank_corr": 0.2 } },
+            "evidence": { "full": "Your impact ranking matched the real ranking (rank correlation {corr}).", "part": "Your impact ranking was partly right (rank correlation {corr}).", "none": "Your impact ranking did not match the real one (rank correlation {corr})." }
+          },
+          {
+            "id": "bets_concentrated", "label": "Concentrated capacity on a few bets",
+            "rule": { "fn": "capacity_concentration", "params": { "max_levers_full": 4, "full_share_top2": 0.5, "max_levers_part": 6 } },
+            "evidence": { "full": "Top two bets took {share} of capacity, within the {limit} bets leadership would back.", "part": "Top two bets took {share} of capacity, spread across {n} levers.", "none": "No concentrated plan: {n} levers funded." }
+          },
+          {
+            "id": "capacity_used", "label": "Used the capacity you had",
+            "rule": { "fn": "capacity_used", "params": { "full": [0.8, 1.0], "part": [0.6, 0.8] } },
+            "evidence": { "full": "Committed {share} of engineering capacity.", "part": "Committed {share} of engineering capacity.", "none": "Committed only {share} of engineering capacity." }
+          },
+          {
+            "id": "spent_where_it_pays", "label": "Spent capacity where it pays most",
+            "rule": { "fn": "delivered_vs_best", "params": { "full": 0.85, "part": 0.5 } },
+            "evidence": { "full": "Your builds deliver {share} of the lift the best set could have, given the {budget} sprints you left for building. The best set was {best}.", "part": "Your builds deliver {share} of the lift the best set could have, given the {budget} sprints you left for building. The best set was {best}.", "none": "Your builds deliver only {share} of the lift the best set could have, given the {budget} sprints you left for building. The best set was {best}." }
+          }
+        ]
+      },
+      {
+        "id": "metrics", "name": "Metrics and measurement", "weight": 15,
+        "subcriteria": [
+          {
+            "id": "primary_and_guardrail", "label": "Pair a primary metric with a guardrail",
+            "rule": { "fn": "primary_plus_guardrail", "params": {} },
+            "backed_by": { "any_of": [{ "reading": "notif_fatigue_ceiling" }], "missing": "Named the right guardrail, but nothing you had asked or tested yet showed that notifications wear users out." },
+            "evidence": { "full": "Primary: {primary}. Guardrail: {guardrail}.", "part": "Named {primary} but no guardrail.", "none": "No primary metric or guardrail was named." }
+          },
+          {
+            "id": "measure_before_depend", "label": "Instrument before depending on data",
+            "rule": { "fn": "instrumentation_before_dependent", "params": {} },
+            "evidence": { "full": "Session tracking was in place before anything that depends on it, and you did not pay for what the company already had.", "part": "Session tracking arrived late, or you paid for tracking the company already had.", "none": "Built features that depend on data you were not collecting." }
+          },
+          {
+            "id": "no_vanity", "label": "Avoided a vanity metric",
+            "rule": { "fn": "vanity_trap", "params": { "vanity": ["mau"] } },
+            "evidence": { "full": "Judged success on {primary}, not on a vanity metric.", "part": "Leaned on {primary} alongside a vanity metric.", "none": "Chose a vanity metric ({primary}) as the measure of success." }
+          }
+        ]
+      },
+      {
+        "id": "experimentation", "name": "Experimentation", "weight": 15,
+        "subcriteria": [
+          {
+            "id": "tested_before_rollout", "label": "Tested risky levers before rolling them out",
+            "rule": { "fn": "ab_before_rollout", "params": { "levers": ["notification_policy", "preference_targeting", "peer_groups"] } },
+            "evidence": { "full": "Tested {lever} before rolling it out.", "part": "Tested some risky levers before rolling them out.", "none": "Did not test {lever} before rolling it out, or rolled out nothing worth testing." }
+          },
+          {
+            "id": "test_hygiene", "label": "Ran tests that could answer the question",
+            "rule": { "fn": "test_hygiene", "params": {} },
+            "evidence": { "full": "Tests had enough sample and duration and were not stopped early.", "part": "Some tests were too small or too short to trust.", "none": "Tests were too small, too short or stopped early." }
+          },
+          {
+            "id": "acted_on_result", "label": "Acted on what the test showed",
+            "rule": { "fn": "acted_on_result", "params": {} },
+            "evidence": { "full": "Shipped what won and dropped what lost.", "part": "Acted on some results and ignored others.", "none": "Ignored what the tests showed." }
+          }
+        ]
+      },
+      {
+        "id": "risk_thinking", "name": "Risk and second-order thinking", "weight": 15,
+        "subcriteria": [
+          {
+            "id": "stayed_under_fatigue", "label": "Kept notifications under the fatigue line",
+            "rule": { "fn": "notif_below_ceiling", "params": { "full_share": 0.8, "part_share": 1.0 } },
+            "evidence": { "full": "Notification volume stayed under the fatigue ceiling.", "part": "Notification volume touched the fatigue ceiling.", "none": "Notification volume went over the ceiling for {segment}." }
+          },
+          {
+            "id": "prepared_for_shock", "label": "Was ready when the market moved",
+            "rule": { "fn": "shock_prepared", "params": {} },
+            "evidence": { "full": "The cycle {cycle} event was largely absorbed ({absorbed} of the hit).", "part": "The cycle {cycle} event was partly absorbed ({absorbed} of the hit).", "none": "The cycle {cycle} event landed in full." }
+          },
+          {
+            "id": "pricing_fit", "label": "Chose a monetisation the data supports",
+            "rule": { "fn": "monetisation_fit", "params": {} },
+            "backed_by": { "any_of": [{ "reading": "price_sensitivity" }, { "reading": "attribution_gap" }], "missing": "Chose a good option, but nothing you had asked or measured showed what seekers would pay or how placements are attributed." },
+            "evidence": { "full": "{choice} was within {gap} of the best option.", "part": "{choice} captured {share} of the best option.", "none": "{choice} captured only {share} of the best option." }
+          }
+        ]
+      },
+      {
+        "id": "communication", "name": "Stakeholder communication", "weight": 10,
+        "subcriteria": [
+          {
+            "id": "update_complete", "label": "Kept your manager in the loop",
+            "rule": { "fn": "status_update_complete", "params": { "fields": ["hypothesis", "bet", "expected_movement", "risk"] } },
+            "evidence": { "full": "Every cycle update covered hypothesis, bet, expected movement and risk.", "part": "{n} of {total} updates were complete.", "none": "Cycle updates were missing or incomplete." }
+          },
+          {
+            "id": "expectations_held", "label": "Said what you expected, and it happened",
+            "rule": { "fn": "expectation_calibrated", "params": { "tolerance": 0.2 } },
+            "evidence": { "full": "Expectations matched outcomes in {n} of {total} cycles.", "part": "Expectations matched outcomes in {n} of {total} cycles.", "none": "Outcomes rarely matched what you said to expect." }
+          }
+        ]
+      }
+    ],
+    "modifiers": [
+      { "id": "found_it_first", "points": 3, "rule": { "fn": "lever_live_before", "params": { "lever": "session_analytics", "before": ["article_feed", "in_session_interactions"] } }, "why": "Found out how sessions actually look before building for them." },
+      { "id": "fatigue_twice", "points": -3, "rule": { "fn": "notif_over_ceiling_consecutive", "params": { "cycles": 2 } }, "why": "Notification volume stayed above the fatigue ceiling for two cycles running." },
+      { "id": "untested_risky", "points": -2, "rule": { "fn": "risky_lever_without_test", "params": { "levers": ["notification_policy", "preference_targeting"] } }, "why": "Changed notification behaviour for real users without a test." },
+      { "id": "sprinkled", "points": -2, "rule": { "fn": "levers_started_in_cycle_gt", "params": { "n": 3 } }, "why": "Started more than three new bets in one cycle, about three sprints each." },
+      { "id": "built_the_favourite", "points": -2, "rule": { "fn": "built_before_evidence", "params": { "lever": "peer_groups", "evidence_levers": ["user_interviews", "session_analytics", "ab_test"] } }, "why": "Built the favourite feature before any research or test supported it." },
+      { "id": "killed_a_loser", "points": 2, "rule": { "fn": "killed_losing_test", "params": {} }, "why": "Dropped a lever once the test showed it did not work." },
+      { "id": "guardrail_answered", "points": 2, "rule": { "fn": "guardrail_breach_responded", "params": { "metric": "notif_opt_out" } }, "why": "The guardrail moved the wrong way and you changed course." },
+      { "id": "expectation_held", "points": 1, "rule": { "fn": "expectation_within", "params": { "tolerance": 0.2 } }, "why": "The cycle landed roughly where you said you expected it to." },
+      { "id": "pricing_fit_bonus", "points": 4, "rule": { "fn": "endgame_choice_within_best", "params": { "within": 0.85 } }, "why": "The monetisation call matched what the segments would actually pay for." },
+      { "id": "pricing_misfit", "points": -4, "rule": { "fn": "endgame_choice_below", "params": { "below": 0.5 } }, "why": "The monetisation call would have captured less than half of the best option." }
+    ]
+  },
+
+  "endgame": {
+    "cycle": 4,
+    "title": "Leadership asks: how do we get paid for this?",
+    "brief": "Retention is up or it is not. Leadership wants a monetisation decision for the seeker side. You have to choose one and say why.",
+    "options": [
+      {
+        "id": "pay_on_placement", "name": "Success fee on placement",
+        "pitch": "Charge the seeker a fee when they are hired through Larkspur.",
+        "value_model": { "fn": "endgame_value", "params": { "segment": "active_applicants", "fee_inr": 1500, "placements_per_active_per_cycle": 0.004, "traceable_share": "1 - attribution_gap", "dispute_cost_share": 0.35 } }
+      },
+      {
+        "id": "premium_subscription", "name": "Premium subscription",
+        "pitch": "A paid tier with extra tools for seekers.",
+        "value_model": { "fn": "endgame_value", "params": { "price_inr_month": 199, "months": 3, "conversion_from": "price_sensitivity" } }
+      },
+      {
+        "id": "course_commission", "name": "Course commission",
+        "pitch": "Earn a share of what recently placed seekers spend on partner courses.",
+        "value_model": { "fn": "endgame_value", "params": { "commission_share": 0.25, "avg_course_inr": 6000, "attach_rate_per_engaged_placed": 0.15, "requires_lever": "course_partnerships" } }
+      },
+      {
+        "id": "stay_free_invest", "name": "Stay free and invest in retention",
+        "pitch": "Keep the seeker side free and use retention to make recruiter subscriptions worth more.",
+        "value_model": { "fn": "endgame_value", "params": { "value_per_return_point_inr": 3250000, "uses": "return_30d_final_minus_baseline" } }
+      }
+    ],
+    "grading": { "within_best_full": 0.85, "within_best_part": 0.5, "reasoning_required": true }
+  },
+
+  "calibration": {
+    "bots": [
+      { "id": "do_nothing", "policy": "Commits no capacity, asks no questions, answers nothing.", "expected_final": { "min": 0, "max": 30 } },
+      { "id": "lazy_filler", "policy": "Commits no capacity but fills every reflection field with a random answer and every status field with a stock sentence.", "expected_final": { "min": 0, "max": 30 } },
+      { "id": "random_valid", "policy": "Picks random affordable levers and random reflection answers.", "expected_final": { "min": 25, "max": 50 } },
+      { "id": "notification_spammer", "policy": "Maxes notification volume on every segment, builds nothing else.", "expected_final": { "min": 0, "max": 35 } },
+      { "id": "framework_first", "policy": "Builds peer groups and course partnerships in cycle 1 without research or tests. Structure without evidence tops out near 41: the criteria that need research or a test are out of reach and the rest are capped at part, so even a careful version of this plan reaches about that. The range was 40-60 before the first run and was revised to 30-45 after the measurements in the README.", "expected_final": { "min": 30, "max": 45 } },
+      { "id": "cautious_researcher", "policy": "Briefs, reads the answers, runs every research lever, never builds.", "expected_final": { "min": 40, "max": 55 } },
+      { "id": "answer_key_guesser", "policy": "Gives every correct reflection answer from cycle 1 with no research behind them, and builds the wrong things first.", "expected_final": { "min": 45, "max": 70 } },
+      { "id": "insight_first", "policy": "Briefs first and reads the answers (tracking, scope, the quarter's worry), instruments only if needed, runs session analytics, builds in scope, prepares for the threat it was told of, targets notifications under the ceiling after a test, picks the supported monetisation.", "expected_final": { "min": 75, "max": 100 } },
+      { "id": "insight_by_reach", "policy": "The same, but puts build capacity on what pays across all users rather than on what the focus segment responds to.", "expected_final": { "min": 75, "max": 100 } }
+    ],
+    "playbook": {
+      "brief": { "first": "why_retention", "then": ["focus_users", "current_data", "notif_constraints", "eng_capacity"], "fallback": "monetisation_plans" },
+      "focus": { "during": "active_applicants", "post": "recently_placed", "during_stage": "during_search", "post_stage": "post_placement" },
+      "diagnosis": { "variable": "skim_behaviour", "lever": "session_analytics", "cause": "sessions_too_shallow", "unknown": "need_more_data" },
+      "scripts": {
+        "notification_spammer": {
+          "base": { "focusSegment": "active_applicants", "reflection": { "root_cause": "frequency_too_low", "primary_metric": "weekly_sessions", "guardrail_metric": "none", "expected_movement": "up_large" } },
+          "cycles": [{}, {}, {}, { "endgame": { "option": "pay_on_placement", "reasoning": "More opens means more placements." } }]
+        },
+        "framework_first": {
+          "base": { "reflection": { "root_cause": "not_enough_use_cases", "primary_metric": "return_30d", "guardrail_metric": "none", "expected_movement": "up_large" } },
+          "cycles": [
+            { "clarify": ["why_retention", "focus_users", "define_retained"], "focusSegment": "active_applicants", "start": ["peer_groups", "course_partnerships", "application_tracker"], "impactRanking": ["peer_groups", "course_partnerships", "application_tracker"] },
+            { "notifications": { "active_applicants": { "volume": 4 }, "passive_browsers": { "volume": 3 }, "recently_placed": { "volume": 2 } }, "start": ["instrumentation_v1"] },
+            { "start": ["article_feed", "in_session_interactions"] },
+            { "endgame": { "option": "premium_subscription", "reasoning": "Seekers will pay for tools." } }
+          ]
+        },
+        "cautious_researcher": {
+          "tracked": {
+            "base": { "reflection": { "root_cause": "need_more_data", "primary_metric": "return_30d", "guardrail_metric": "notif_opt_out", "expected_movement": "flat" } },
+            "cycles": [
+              { "focusSegment": "$during_first", "start": ["user_interviews", "placed_exit_survey", "session_analytics"], "experiments": [{ "lever": "notification_policy", "segment": "active_applicants", "samplePct": 50, "weeks": 6, "volume": 6 }, { "lever": "course_partnerships", "segment": "recently_placed", "samplePct": 50, "weeks": 6 }] },
+              { "start": ["instrumentation_v2"], "experiments": [{ "lever": "peer_groups", "segment": "recently_placed", "samplePct": 50, "weeks": 6 }, { "lever": "article_feed", "segment": "active_applicants", "samplePct": 50, "weeks": 6 }] },
+              { "experiments": [{ "lever": "article_feed", "segment": "recently_placed", "samplePct": 50, "weeks": 6 }, { "lever": "notification_policy", "segment": "passive_browsers", "samplePct": 50, "weeks": 6, "volume": 3 }] },
+              { "endgame": { "option": "stay_free_invest", "reasoning": "Nothing here has been proven to pay." } }
+            ]
+          },
+          "untracked": {
+            "base": { "reflection": { "root_cause": "need_more_data", "primary_metric": "return_30d", "guardrail_metric": "notif_opt_out", "expected_movement": "flat" } },
+            "cycles": [
+              { "focusSegment": "$during_first", "start": ["instrumentation_v1", "user_interviews", "placed_exit_survey"], "experiments": [{ "lever": "notification_policy", "segment": "active_applicants", "samplePct": 50, "weeks": 6, "volume": 6 }, { "lever": "course_partnerships", "segment": "recently_placed", "samplePct": 50, "weeks": 6 }] },
+              { "start": ["session_analytics", "instrumentation_v2"], "experiments": [{ "lever": "peer_groups", "segment": "recently_placed", "samplePct": 50, "weeks": 6 }, { "lever": "article_feed", "segment": "active_applicants", "samplePct": 50, "weeks": 6 }] },
+              { "experiments": [{ "lever": "article_feed", "segment": "recently_placed", "samplePct": 50, "weeks": 6 }, { "lever": "notification_policy", "segment": "passive_browsers", "samplePct": 50, "weeks": 6, "volume": 3 }] },
+              { "endgame": { "option": "stay_free_invest", "reasoning": "Nothing here has been proven to pay." } }
+            ]
+          }
+        },
+        "answer_key_guesser": {
+          "base": { "reflection": { "root_cause": "sessions_too_shallow", "primary_metric": "return_30d", "guardrail_metric": "notif_opt_out", "expected_movement": "up_small" }, "impactRanking": ["article_feed", "course_partnerships", "application_tracker", "peer_groups", "in_session_interactions"] },
+          "cycles": [
+            { "clarify": ["why_retention", "focus_users", "define_retained", "current_data", "notif_constraints", "monetisation_plans"], "focusSegment": "recently_placed", "experiments": [{ "lever": "notification_policy", "segment": "active_applicants", "samplePct": 50, "weeks": 6, "volume": 6 }], "start": ["instrumentation_v1", "peer_groups", "course_partnerships"] },
+            { "notifications": { "active_applicants": { "volume": 3.5, "targeting": "rules" }, "passive_browsers": { "volume": 1.4, "targeting": "rules" }, "recently_placed": { "volume": 0.7, "targeting": "rules" } }, "start": ["article_feed", "application_tracker"] },
+            {},
+            { "endgame": { "option": "stay_free_invest", "reasoning": "Retention is the asset." } }
+          ]
+        }
+      },
+      "insight": {
+        "basic_tracking": "instrumentation_v1", "pipeline": "instrumentation_v2", "analytics": "session_analytics", "research": ["user_interviews", "placed_exit_survey"],
+        "first_cycle_tests": [{ "lever": "notification_policy", "segment": "active_applicants", "volume": 6 }, { "lever": "notification_policy", "segment": "$post_first", "volume": 3 }],
+        "second_cycle_tests": [{ "lever": "notification_policy", "segment": "passive_browsers", "volume": 3 }, { "lever": "peer_groups", "segment": "$post_first" }],
+        "last_cycle_tests": [{ "lever": "cohort_holdout", "segment": "active_applicants", "samplePct": 10 }, { "lever": "subscription_offer", "segment": "active_applicants" }, { "lever": "fee_offer", "segment": "active_applicants" }],
+        "gated_build": "peer_groups", "cheap_leader": "in_session_interactions",
+        "prepare": { "competitor_free_courses": ["course_partnerships"], "job_supply_dip": ["application_tracker", "article_feed"] },
+        "finding_adds": { "variable": "skim_behaviour", "build": "article_feed" },
+        "margins": { "default": 0.7, "by_threat": { "notification_bug": 0.4 } }
+      }
+    },
+    "invariants": [
+      "The do-nothing bot must land in the Poor band (below 40).",
+      "In one fixed world, replaying identical decisions under different seeds moves the final score by at most 8 points, so measurement luck cannot outscore a well-argued run.",
+      "Evidence-driven play scores well in every world, within a 12 point spread from the 10th to the 90th percentile.",
+      "final = trait_total + modifier_total for every cycle, and trait weights sum to 100.",
+      "The insight-first bot must beat the framework-first bot by at least 15 points."
+    ]
+  }
+}

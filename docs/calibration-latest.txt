@@ -1,0 +1,86 @@
+
+The Quiet Middle: getting learners through the programme: 200 seeds per bot
+
+bot                   expected      mean   p10   p90   min   max  in range   band
+do_nothing            0-30        0.0   0.0   0.0   0.0   0.0     100%   Poor
+lazy_filler           0-30        9.1   7.2  11.3   5.5  14.6     100%   Poor
+random_valid          25-50      35.2  27.9  43.7  19.2  53.5      95%   Poor
+notification_spammer  0-35       19.3  18.0  20.6  18.0  20.6     100%   Poor
+framework_first       30-45      35.4  31.2  39.8  29.6  42.8      97%   Poor
+cautious_researcher   40-55      51.4  49.8  53.1  48.4  55.9      99%   Weak
+answer_key_guesser    45-70      57.9  52.2  65.7  45.0  72.3      98%   Weak
+insight_first         75-100     83.9  80.5  87.0  74.2  89.0     100%   Strong
+insight_by_reach      75-100     83.2  79.1  87.0  74.2  88.2     100%   Strong
+
+Where the points come from (mean % of the points available in each trait, over applicable cycles):
+bot                    problem_ user_emp prioriti  metrics experime risk_thi communic
+do_nothing                   0%       0%       0%       0%       0%       0%       0%
+lazy_filler                 15%       0%       0%      33%       0%       0%       9%
+random_valid                54%      37%      38%      54%      24%      13%      13%
+notification_spammer        25%      33%       0%      33%       0%       5%      50%
+framework_first             50%      38%      32%      66%       0%      13%      50%
+cautious_researcher         98%       0%       4%     100%      46%       6%      99%
+answer_key_guesser          63%      42%      47%      93%      77%      30%      42%
+insight_first              100%      66%      68%     100%      90%      70%      79%
+insight_by_reach           100%      63%      66%     100%      90%      70%      79%
+
+Rule coverage across all bot runs (a rule that never reaches full, part and none, or a modifier that never fires, is dead weight):
+  note modifier sprinkled never fires
+  note modifier killed_a_loser never fires
+
+Invariants:
+  ok   do_nothing never leaves Poor (worst 0.0)
+  ok   lazy_filler never leaves Poor (worst 14.6)
+  ok   insight_first: in one world the same decisions swing only 1.0 points across seeds
+  ok   framework_first: in one world the same decisions swing only 0.0 points across seeds
+  ok   insight_first spreads only 6.5 points from p10 to p90 across worlds
+  info answer_key_guesser: 65.8 in the world it was written for, 57.9 across varied worlds (loses 7.9)
+  info insight_first: 84.8 in the world it was written for, 83.9 across varied worlds (loses 0.8)
+  ok   trait weights sum to 100
+  ok   final = trait_total + modifier_total in every cycle of every run
+  ok   insight_first beats framework_first by 48.5 points
+
+All invariants and expectations hold.
+
+After the Search: bringing job seekers back: 200 seeds per bot
+
+bot                   expected      mean   p10   p90   min   max  in range   band
+do_nothing            0-30        0.0   0.0   0.0   0.0   0.0     100%   Poor
+lazy_filler           0-30        9.1   7.2  11.6   5.2  16.4     100%   Poor
+random_valid          25-50      36.3  28.6  44.9  20.4  51.6      97%   Poor
+notification_spammer  0-35       19.2  18.0  20.6  18.0  20.6     100%   Poor
+framework_first       30-45      36.6  32.3  40.7  29.8  42.8      99%   Poor
+cautious_researcher   40-55      50.5  48.2  53.1  47.5  55.1      99%   Weak
+answer_key_guesser    45-70      61.1  54.8  67.9  49.1  72.2      98%   Competent
+insight_first         75-100     84.1  79.9  87.8  74.2  89.3     100%   Strong
+insight_by_reach      75-100     84.2  80.2  87.8  74.2  89.3     100%   Strong
+
+Where the points come from (mean % of the points available in each trait, over applicable cycles):
+bot                    problem_ user_emp prioriti  metrics experime risk_thi communic
+do_nothing                   0%       0%       0%       0%       0%       0%       0%
+lazy_filler                 15%       0%       0%      33%       0%       0%      10%
+random_valid                55%      42%      37%      54%      26%      12%      13%
+notification_spammer        25%      33%       0%      33%       0%       4%      50%
+framework_first             50%      43%      34%      66%       0%      13%      50%
+cautious_researcher         98%       0%       4%     100%      45%       6%      94%
+answer_key_guesser          63%      43%      54%      93%      77%      38%      48%
+insight_first              100%      68%      63%     100%      89%      69%      84%
+insight_by_reach           100%      65%      65%     100%      89%      69%      85%
+
+Rule coverage across all bot runs (a rule that never reaches full, part and none, or a modifier that never fires, is dead weight):
+  note modifier sprinkled never fires
+  note modifier killed_a_loser never fires
+
+Invariants:
+  ok   do_nothing never leaves Poor (worst 0.0)
+  ok   lazy_filler never leaves Poor (worst 16.4)
+  ok   insight_first: in one world the same decisions swing only 1.2 points across seeds
+  ok   framework_first: in one world the same decisions swing only 0.0 points across seeds
+  ok   insight_first spreads only 7.9 points from p10 to p90 across worlds
+  info answer_key_guesser: 69.1 in the world it was written for, 61.1 across varied worlds (loses 8.0)
+  info insight_first: 84.6 in the world it was written for, 84.1 across varied worlds (loses 0.5)
+  ok   trait weights sum to 100
+  ok   final = trait_total + modifier_total in every cycle of every run
+  ok   insight_first beats framework_first by 47.5 points
+
+All invariants and expectations hold.

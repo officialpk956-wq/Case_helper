@@ -1,0 +1,28 @@
+What the scripted managers would score under other weightings of the same sub-criteria (before modifiers), 40 worlds each, seeds 1-40.
+This is the comparison that led to option D being adopted. A is the rubric as first written; the code now scores with D.
+Reproduce: node proto/venture/whatif.ts 40
+
+=== The Leaky Funnel: score of each manager under other weightings, seeds 1-40 (before modifiers) ===
+                       A:       B:       C:       D:
+do_nothing            0.0      0.0      0.0      0.0
+random               43.1     42.1     41.1     39.6
+feature_factory      28.7     29.1     27.8     27.5
+debt_first           65.1     61.6     57.5     53.0
+textbook             61.7     58.5     56.2     52.4
+evidence_led         89.1     89.5     89.7     90.0
+oracle               79.8     77.5     75.4     72.2
+
+=== Good, Better, Best: score of each manager under other weightings, seeds 1-40 (before modifiers) ===
+                       A:       B:       C:       D:
+do_nothing            0.0      0.0      0.0      0.0
+random               42.1     40.9     40.1     38.4
+feature_factory      27.7     29.8     27.4     28.2
+debt_first           60.6     57.6     53.5     49.5
+textbook             59.9     58.9     54.3     52.0
+evidence_led         84.8     86.3     87.3     88.8
+oracle               76.5     75.8     72.8     71.0
+
+A: as first written
+B: more weight on strategy and evidence (20,20,15,10,10,10,15)
+C: outcome and judgement sub-criteria count double
+D: B and C together (adopted)

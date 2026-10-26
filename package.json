@@ -1,0 +1,22 @@
+{
+  "name": "pm-sim",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Product-decision simulation engine, scenario format and calibration bots.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "check": "node check.mjs",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "calibrate": "node src/calibrate.ts",
+    "serve": "node src/server.ts",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "ajv": "^8.20.0",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,643 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pm-scenario.schema.json",
+  "title": "Product-decision simulation scenario",
+  "description": "One file = one playable case. Engine-private: never ship the whole file to the browser (see README, public/private split).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "title", "version", "stages", "meta", "company", "timeline", "segments", "metrics", "capacity", "case_facts", "engine", "levers", "hidden_variables", "measurement", "clarify", "reflection", "events", "rubric", "endgame", "calibration"],
+  "properties": {
+    "_notes": { "type": "array", "items": { "type": "string" } },
+    "schema_version": { "const": "0.1" },
+    "id": { "$ref": "#/$defs/slug" },
+    "title": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+
+    "stages": {
+      "type": "array",
+      "description": "The two stages of the journey, in order: the one players work on (the first) and the one after the goal is reached (the second), whose segment is engine.post_placement_segment. The label is what a player reads.",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "object", "additionalProperties": false, "required": ["id", "label"], "properties": { "id": { "$ref": "#/$defs/slug" }, "label": { "type": "string" } } }
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domain", "audience", "est_minutes", "locale", "inspiration", "rights_note"],
+      "properties": {
+        "domain": { "enum": ["product", "finance", "operations", "leadership"] },
+        "audience": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "est_minutes": { "type": "integer", "minimum": 5 },
+        "locale": { "type": "string" },
+        "inspiration": { "type": "string" },
+        "rights_note": { "type": "string" }
+      }
+    },
+
+    "company": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "one_liner", "stage", "market", "business_model", "product", "brief", "stakeholders"],
+      "properties": {
+        "name": { "type": "string" },
+        "one_liner": { "type": "string" },
+        "stage": { "type": "string" },
+        "market": { "type": "string" },
+        "business_model": { "type": "string" },
+        "product": { "type": "string" },
+        "brief": { "type": "string" },
+        "stakeholders": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "role", "stance"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "name": { "type": "string" },
+              "role": { "type": "string" },
+              "stance": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "timeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cycles", "cycle_weeks", "cycle_briefs"],
+      "properties": {
+        "cycles": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "cycle_weeks": { "type": "integer", "minimum": 1 },
+        "cycle_briefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["n", "title", "brief"],
+            "properties": { "n": { "type": "integer", "minimum": 1 }, "title": { "type": "string" }, "brief": { "type": "string" } }
+          }
+        }
+      }
+    },
+
+    "segments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "share", "description", "baseline"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" },
+          "name": { "type": "string" },
+          "share": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+          "description": { "type": "string" },
+          "baseline": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["weekly_sessions", "session_seconds", "return_30d", "notif_opt_out"],
+            "properties": {
+              "weekly_sessions": { "type": "number", "minimum": 0 },
+              "session_seconds": { "type": "number", "minimum": 0 },
+              "return_30d": { "type": "number", "minimum": 0, "maximum": 1 },
+              "notif_opt_out": { "type": "number", "minimum": 0, "maximum": 1 }
+            }
+          }
+        }
+      }
+    },
+
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "unit", "kind", "definition", "visible_from_instrumentation"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" },
+          "label": { "type": "string" },
+          "unit": { "type": "string" },
+          "kind": { "enum": ["outcome", "input", "guardrail", "vanity"] },
+          "definition": { "type": "string" },
+          "visible_from_instrumentation": { "type": "integer", "minimum": 0 },
+          "noise_scale": { "type": "number", "minimum": 0, "description": "Share of the instrumentation level's measurement noise this metric carries. Default 1." }
+        }
+      }
+    },
+
+    "capacity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eng_sprints_per_cycle", "clarify_tokens", "experiment_slots_per_cycle"],
+      "properties": {
+        "eng_sprints_per_cycle": { "type": "number", "exclusiveMinimum": 0 },
+        "clarify_tokens": { "type": "integer", "minimum": 0 },
+        "experiment_slots_per_cycle": { "type": "integer", "minimum": 0 },
+        "experiment_slots_final_cycle": { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "engine": {
+      "type": "object",
+      "description": "Constants the engine needs that are not per-lever. Everything tunable lives in the file, nothing hides in code.",
+      "additionalProperties": false,
+      "required": ["ramp_first_live_cycle", "return_30d_cap", "opt_out_cap", "opt_out_persistence", "opt_out_return_penalty", "notif_return_per_session_lift", "notification_baseline", "event_persistence", "event_max_mitigation", "population", "mau_sessions_elasticity", "mau_wobble_sd", "post_placement_segment", "post_placement_engagement_per_return", "movement_thresholds", "test_ship_threshold", "test_kill_threshold", "guardrail_breach_abs", "quality_scaled_levers", "test_reveals", "variation", "reveal"],
+      "properties": {
+        "ramp_first_live_cycle": { "type": "number", "minimum": 0, "maximum": 1 },
+        "return_30d_cap": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "opt_out_cap": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "opt_out_persistence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "opt_out_return_penalty": { "type": "number", "minimum": 0 },
+        "notif_return_per_session_lift": { "type": "number", "minimum": 0 },
+        "notification_baseline": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["volume", "targeting"],
+          "properties": {
+            "volume": { "type": "object", "propertyNames": { "$ref": "#/$defs/slug" }, "additionalProperties": { "type": "number", "minimum": 0 } },
+            "targeting": { "enum": ["broadcast", "rules", "preference_model"] }
+          }
+        },
+        "event_persistence": { "type": "array", "items": { "type": "number", "minimum": 0, "maximum": 1 }, "minItems": 1 },
+        "event_max_mitigation": { "type": "number", "minimum": 0, "maximum": 1 },
+        "population": { "type": "number", "exclusiveMinimum": 0 },
+        "mau_sessions_elasticity": { "type": "number" },
+        "mau_wobble_sd": { "type": "number", "minimum": 0 },
+        "post_placement_segment": { "$ref": "#/$defs/slug" },
+        "post_placement_engagement_per_return": { "type": "number", "exclusiveMinimum": 0 },
+        "movement_thresholds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["flat_below", "small_below"],
+          "properties": { "flat_below": { "type": "number", "exclusiveMinimum": 0 }, "small_below": { "type": "number", "exclusiveMinimum": 0 } }
+        },
+        "test_ship_threshold": { "type": "number" },
+        "test_kill_threshold": { "type": "number" },
+        "guardrail_breach_abs": { "type": "number", "exclusiveMinimum": 0 },
+        "quality_scaled_levers": { "type": "object", "propertyNames": { "$ref": "#/$defs/slug" }, "additionalProperties": { "$ref": "#/$defs/slug" } },
+        "test_reveals": { "type": "object", "propertyNames": { "$ref": "#/$defs/slug" }, "additionalProperties": { "type": "array", "items": { "$ref": "#/$defs/slug" } } },
+        "reveal": {
+          "type": "object",
+          "description": "How a revealed hidden variable is shown. exact: the truth. noisy: numbers scaled by (1 + noisy_sd * z). directional: only an order among siblings, or a bucket against the file's typical value, read through directional_sd noise.",
+          "additionalProperties": false,
+          "required": ["noisy_sd", "directional_sd", "bucket_ratio"],
+          "properties": {
+            "noisy_sd": { "type": "number", "minimum": 0 },
+            "directional_sd": { "type": "number", "minimum": 0 },
+            "bucket_ratio": { "type": "number", "exclusiveMinimum": 1, "description": "Above this multiple of typical reads 'above'; below its inverse reads 'below'." }
+          }
+        },
+        "variation": {
+          "type": "object",
+          "description": "Per-seed redraw of the hidden world, so an answer key learned in one world does not work in another. Observable things never move.",
+          "additionalProperties": false,
+          "required": ["effect_sd", "hidden"],
+          "properties": {
+            "effect_sd": { "type": "number", "minimum": 0, "description": "Lognormal sd applied to each lever x segment effect and each notification gain. Zeros stay zero and signs never flip." },
+            "hidden": {
+              "type": "object",
+              "propertyNames": { "$ref": "#/$defs/slug" },
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["sd"],
+                "properties": {
+                  "sd": { "type": "number", "minimum": 0 },
+                  "min": { "type": "number" },
+                  "max": { "type": "number" },
+                  "min_multiple_of_baseline_volume": { "type": "number", "minimum": 0, "description": "For per-segment maps: never fall below this multiple of the volume everyone starts at." }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "levers": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/lever" } },
+
+    "hidden_variables": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "description", "truth", "reveal"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" },
+          "description": { "type": "string" },
+          "player": {
+            "type": "object",
+            "description": "How a reading of this variable is shown to a player: a name that does not give the finding away, and whether its numbers are shares.",
+            "additionalProperties": false,
+            "required": ["label"],
+            "properties": { "label": { "type": "string" }, "percent": { "type": "boolean" } }
+          },
+          "truth": {},
+          "reveal": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["via", "fidelity"],
+            "properties": {
+              "via": {
+                "type": "array",
+                "description": "Empty = discoverable only by watching the metrics over several cycles.",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kind", "ref"],
+                  "properties": { "kind": { "enum": ["clarify", "lever", "event"] }, "ref": { "$ref": "#/$defs/slug" }, "fidelity": { "enum": ["exact", "directional", "noisy", "none"], "description": "What this source returns, if different from the variable's default." } }
+                }
+              },
+              "fidelity": { "enum": ["exact", "directional", "noisy", "none"] },
+              "after_cycles": { "type": "integer", "minimum": 0 }
+            }
+          }
+        }
+      }
+    },
+
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instrumentation_levels", "experiment"],
+      "properties": {
+        "instrumentation_levels": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["level", "label", "noise_sd"],
+            "properties": { "level": { "type": "integer", "minimum": 0 }, "label": { "type": "string" }, "noise_sd": { "type": "number", "minimum": 0 } }
+          }
+        },
+        "experiment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["base_noise_sd", "min_weeks", "min_sample_pct", "peek_penalty_sd"],
+          "properties": {
+            "base_noise_sd": { "type": "number", "minimum": 0 },
+            "min_weeks": { "type": "integer", "minimum": 1 },
+            "min_sample_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+            "peek_penalty_sd": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+
+    "case_facts": {
+      "type": "object",
+      "description": "Facts about the case that differ from seed to seed and that clarifying answers reveal. The market event is the third, drawn from events.pool.",
+      "additionalProperties": false,
+      "required": ["tracking", "scope", "backing"],
+      "properties": {
+        "tracking": {
+          "description": "What the company can already see inside a session before the player does anything.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "weight", "instrumentation_level"],
+            "properties": { "id": { "$ref": "#/$defs/slug" }, "weight": { "type": "number", "exclusiveMinimum": 0 }, "instrumentation_level": { "type": "integer", "minimum": 0 } }
+          }
+        },
+        "backing": {
+          "description": "How many bets leadership will back this quarter. It backs the first builds the player starts; any later one is stopped at launch.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "weight", "max_bets"],
+            "properties": { "id": { "$ref": "#/$defs/slug" }, "weight": { "type": "number", "exclusiveMinimum": 0 }, "max_bets": { "type": "integer", "minimum": 1 } }
+          }
+        },
+        "scope": {
+          "description": "Which stages of the journey this quarter's brief covers. A build that only serves a stage outside it is stopped at launch.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "weight", "stages"],
+            "properties": { "id": { "$ref": "#/$defs/slug" }, "weight": { "type": "number", "exclusiveMinimum": 0 }, "stages": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/slug" } } }
+          }
+        }
+      }
+    },
+
+    "clarify": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["questions"],
+      "properties": {
+        "questions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "text", "relevance", "answer"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "text": { "type": "string" },
+              "relevance": { "enum": ["high", "medium", "low"] },
+              "answer": {
+                "oneOf": [
+                  { "type": "string" },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["by", "cases"],
+                    "properties": {
+                      "by": { "$ref": "#/$defs/slug" },
+                      "cases": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": ["text"],
+                          "properties": { "text": { "type": "string" }, "learns": { "type": "object", "additionalProperties": { "type": "string" } } }
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "signal_for": { "type": "array", "items": { "$ref": "#/$defs/slug" } },
+              "reveals": { "type": "array", "items": { "$ref": "#/$defs/slug" } },
+              "bias_trap": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    },
+
+    "reflection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prompts"],
+      "properties": {
+        "prompts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "text", "kind"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "text": { "type": "string" },
+              "kind": { "enum": ["single_choice", "multi_choice", "scale"] },
+              "options": {
+                "type": "array",
+                "items": { "type": "object", "additionalProperties": false, "required": ["id", "label"], "properties": { "id": { "$ref": "#/$defs/slug" }, "label": { "type": "string" } } }
+              },
+              "truth": { "type": "object" }
+            }
+          }
+        }
+      }
+    },
+
+    "events": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selection", "cycle", "pool"],
+      "properties": {
+        "selection": { "enum": ["fixed", "seeded"] },
+        "cycle": { "type": "integer", "minimum": 1 },
+        "pool": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "weight", "signal", "body", "effects", "mitigations"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "name": { "type": "string" },
+              "weight": { "type": "number", "exclusiveMinimum": 0 },
+              "signal": { "type": "string" },
+              "body": { "type": "string" },
+              "effects": { "$ref": "#/$defs/perSegmentEffects" },
+              "mitigations": {
+                "type": "array",
+                "items": { "type": "object", "additionalProperties": false, "required": ["when", "factor"], "properties": { "when": { "$ref": "#/$defs/rule" }, "factor": { "type": "number", "minimum": 0, "maximum": 1 } } }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "rubric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level_factors", "bands", "traits", "modifiers"],
+      "properties": {
+        "level_factors": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["full", "part", "none"],
+          "properties": { "full": { "type": "number" }, "part": { "type": "number" }, "none": { "type": "number" } }
+        },
+        "bands": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "object", "additionalProperties": false, "required": ["min", "label"], "properties": { "min": { "type": "number" }, "label": { "type": "string" } } }
+        },
+        "traits": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "weight", "subcriteria"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "name": { "type": "string" },
+              "weight": { "type": "number", "exclusiveMinimum": 0 },
+              "subcriteria": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "label", "rule", "evidence"],
+                  "properties": {
+                    "id": { "$ref": "#/$defs/slug" },
+                    "label": { "type": "string" },
+                    "rule": { "$ref": "#/$defs/rule" },
+                    "backed_by": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": ["any_of", "missing"],
+                      "properties": {
+                        "any_of": {
+                          "type": "array",
+                          "minItems": 1,
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "minProperties": 1,
+                            "maxProperties": 1,
+                            "properties": { "clarify": { "$ref": "#/$defs/slug" }, "reading": { "$ref": "#/$defs/slug" } }
+                          }
+                        },
+                        "missing": { "type": "string" }
+                      }
+                    },
+                    "evidence": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": ["full", "part", "none"],
+                      "properties": { "full": { "type": "string" }, "part": { "type": "string" }, "none": { "type": "string" } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "modifiers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "points", "rule", "why"],
+            "properties": { "id": { "$ref": "#/$defs/slug" }, "points": { "type": "number" }, "rule": { "$ref": "#/$defs/rule" }, "why": { "type": "string" } }
+          }
+        }
+      }
+    },
+
+    "endgame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cycle", "title", "brief", "options", "grading"],
+      "properties": {
+        "cycle": { "type": "integer", "minimum": 1 },
+        "title": { "type": "string" },
+        "brief": { "type": "string" },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "pitch", "value_model"],
+            "properties": { "id": { "$ref": "#/$defs/slug" }, "name": { "type": "string" }, "pitch": { "type": "string" }, "value_model": { "$ref": "#/$defs/rule" } }
+          }
+        },
+        "grading": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["within_best_full", "within_best_part", "reasoning_required"],
+          "properties": {
+            "within_best_full": { "type": "number", "description": "Chosen value >= best * this -> full" },
+            "within_best_part": { "type": "number" },
+            "reasoning_required": { "type": "boolean" }
+          }
+        }
+      }
+    },
+
+    "calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bots", "invariants"],
+      "properties": {
+        "bots": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "policy", "expected_final"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "policy": { "type": "string" },
+              "expected_final": { "type": "object", "additionalProperties": false, "required": ["min", "max"], "properties": { "min": { "type": "number" }, "max": { "type": "number" } } }
+            }
+          }
+        },
+        "invariants": { "type": "array", "items": { "type": "string" } },
+        "playbook": {
+          "type": "object",
+          "description": "What the scripted calibration bots do in this case: the textbook plan, the careful researcher's research, the answer key, and the roles the evidence-driven bots need (which lever is the analysis that finds the cause, what to build against each threat). Checked against the case's ids by check.mjs and read by src/bots.ts."
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "slug": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "rule": {
+      "type": "object",
+      "description": "A named pure function implemented by the engine, plus its parameters. The README lists the catalogue.",
+      "additionalProperties": false,
+      "required": ["fn", "params"],
+      "properties": { "fn": { "$ref": "#/$defs/slug" }, "params": { "type": "object" } }
+    },
+    "segmentEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "weekly_sessions_rel": { "type": "number" },
+        "session_seconds_rel": { "type": "number" },
+        "return_30d_rel": { "type": "number" },
+        "notif_opt_out_abs": { "type": "number" }
+      }
+    },
+    "perSegmentEffects": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/slug" },
+      "additionalProperties": { "$ref": "#/$defs/segmentEffect" }
+    },
+    "lever": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "kind", "category", "stages", "cost_sprints", "lead_cycles", "available_from_cycle", "description", "player_prior", "risk"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "name": { "type": "string" },
+        "kind": { "enum": ["build", "dial", "research", "experiment", "foundation", "offer", "holdout"] },
+        "category": { "enum": ["use_case", "frequency", "intensity", "research", "measurement"] },
+        "stages": { "type": "array", "items": { "$ref": "#/$defs/slug" } },
+        "cost_sprints": { "type": "number", "minimum": 0 },
+        "lead_cycles": { "type": "integer", "minimum": 0 },
+        "available_from_cycle": { "type": "integer", "minimum": 1 },
+        "requires": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "instrumentation_level": { "type": "integer", "minimum": 0 },
+            "levers": { "type": "array", "items": { "$ref": "#/$defs/slug" } }
+          }
+        },
+        "soft_requires": {
+          "type": "object",
+          "description": "Works without it, but only at else_multiplier of full effect.",
+          "additionalProperties": false,
+          "required": ["levers", "else_multiplier"],
+          "properties": { "levers": { "type": "array", "items": { "$ref": "#/$defs/slug" } }, "else_multiplier": { "type": "number", "minimum": 0, "maximum": 1 } }
+        },
+        "reveals_hidden": { "type": "array", "items": { "$ref": "#/$defs/slug" } },
+        "effects": { "$ref": "#/$defs/perSegmentEffects" },
+        "params": { "type": "object" },
+        "description": { "type": "string" },
+        "player_prior": { "type": "string", "description": "What the player is TOLD to expect (benchmark / intuition). May be wrong." },
+        "risk": { "type": "string" }
+      }
+    }
+  }
+}

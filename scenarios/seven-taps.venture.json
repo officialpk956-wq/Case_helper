@@ -1,0 +1,917 @@
+{
+  "family": "venture",
+  "schema_version": "0.1",
+  "id": "kestrel_seven_taps",
+  "title": "Seven Taps",
+  "version": "1.0.0",
+  "meta": {
+    "domain": "design",
+    "seat": "designer",
+    "order": 9,
+    "audience": ["designers", "design-leads", "design-students"],
+    "est_minutes": 75,
+    "locale": "en-IN",
+    "inspiration": "A manager's year in a company with a problem: four quarters, a team, hidden facts that sponsors state wrongly, one market event and a plan for the year after.",
+    "rights_note": "Original scenario. The company, the people, the product and every number are invented."
+  },
+  "company": {
+    "name": "Kestrel Bank",
+    "one_liner": "A retail bank whose mobile app needs seven taps to pay a bill, and loses many people on the way.",
+    "stage": "Established, profitable",
+    "market": "India: salaried families, young earners and older customers, with a regulator that reviews accessibility",
+    "business_model": "Fees and interchange on payments, and the deposits that people keep because the app is where they pay.",
+    "product": "The mobile banking app, and bill pay in particular.",
+    "role": "Design lead for the app. Your team is four designers, seven engineers and two analysts.",
+    "brief": "You report to the Chief Product Officer. Paying a bill takes seven taps, and a large share of the people who start never finish. The product team says the flow is the problem, support says the words are, and compliance says accessibility. Nobody has watched real customers do it, and the app records opens and completed payments and little in between. You have four quarters of twelve weeks.",
+    "stakeholders": [
+      {
+        "name": "Nandini Ghosh",
+        "role": "Chief Product Officer, your manager",
+        "says": "Tell me why people give up on bill pay, with evidence. I will not fund a redesign on opinion."
+      },
+      {
+        "name": "Rahul Mehta",
+        "role": "Chief Executive",
+        "says": "The brand needs a fresh look before the festival campaign. Seven taps is a detail."
+      },
+      {
+        "name": "Priya Venkat",
+        "role": "Head of Product",
+        "says": "The flow is the problem. Seven taps: cut them."
+      },
+      {
+        "name": "Tara Singh",
+        "role": "Head of Engineering",
+        "says": "Every redesign that skips the component library costs us twice."
+      },
+      {
+        "name": "Anil Kapoor",
+        "role": "Head of Compliance",
+        "says": "The regulator reviews accessibility this year. Our last audit was two years ago."
+      },
+      {
+        "name": "Mohit Jain",
+        "role": "Head of Customer Support",
+        "says": "Older customers phone us to pay a bill. They say the words make no sense."
+      }
+    ]
+  },
+  "stage_names": ["Opens bill pay", "Starts a payment", "Completes it"],
+  "segments": [
+    {
+      "id": "young",
+      "name": "Young earners",
+      "description": "Customers under thirty, on new phones, who pay a handful of bills.",
+      "inflow": 65000,
+      "stages": [0.8, 0.55, 0.75],
+      "churn": 0.12,
+      "arpu": 400,
+      "var_cost": 120,
+      "customers": 180000,
+      "stage_cost": 20
+    },
+    {
+      "id": "family",
+      "name": "Working families",
+      "description": "Households that pay many bills and keep their money here.",
+      "inflow": 35000,
+      "stages": [0.75, 0.5, 0.7],
+      "churn": 0.06,
+      "arpu": 900,
+      "var_cost": 250,
+      "customers": 150000,
+      "stage_cost": 20
+    },
+    {
+      "id": "older",
+      "name": "Older customers",
+      "description": "Customers over sixty, many of whom still pay at a branch.",
+      "inflow": 47000,
+      "stages": [0.7, 0.4, 0.55],
+      "churn": 0.08,
+      "arpu": 700,
+      "var_cost": 200,
+      "customers": 90000,
+      "stage_cost": 20
+    }
+  ],
+  "items": [
+    {
+      "id": "flow_redesign",
+      "name": "Redesign pay-a-bill in three steps",
+      "about": "Rebuild the journey around what customers are trying to do, in three steps instead of seven.",
+      "area": "flow",
+      "eng": 14,
+      "design": 20,
+      "data": 0,
+      "clar": 0.5,
+      "debt": 2,
+      "effects": {
+        "young": {
+          "s2": 0.1497,
+          "s3": 0.1497
+        },
+        "family": {
+          "s2": 0.1497,
+          "s3": 0.1497
+        },
+        "older": {
+          "s2": 0.1497,
+          "s3": 0.1497
+        }
+      },
+      "scale": [
+        {
+          "v": "flow_share",
+          "ref": 0.6,
+          "keys": ["s2", "s3"]
+        }
+      ],
+      "side_cost": {
+        "per_quarter": 83.1
+      },
+      "sponsor": "biz",
+      "serves": ["activate", "monetise"],
+      "big": true,
+      "risky": true
+    },
+    {
+      "id": "copy_rewrite",
+      "name": "Rewrite the words on every payment screen",
+      "about": "Plain language, in the order people think, tested on people who have never seen a bank form.",
+      "area": "words",
+      "eng": 4,
+      "design": 8,
+      "data": 0,
+      "clar": 0.8,
+      "debt": 0,
+      "effects": {
+        "young": {
+          "s3": 0.0117
+        },
+        "family": {
+          "s3": 0.014
+        },
+        "older": {
+          "s2": 0.0234,
+          "s3": 0.0281
+        }
+      },
+      "scale": [
+        {
+          "v": "words_share",
+          "ref": 0.15,
+          "keys": ["s2", "s3"]
+        }
+      ],
+      "sponsor": "design",
+      "serves": ["activate"]
+    },
+    {
+      "id": "trust_cues",
+      "name": "Trust cues: confirmations, receipts and the bank's name",
+      "about": "Show what will happen before it happens, and proof afterwards.",
+      "area": "trust",
+      "eng": 6,
+      "design": 8,
+      "data": 0,
+      "clar": 0.7,
+      "debt": 0,
+      "effects": {
+        "family": {
+          "s3": 0.0251
+        },
+        "older": {
+          "s3": 0.0502,
+          "churn": 0.0201
+        }
+      },
+      "sponsor": "ext",
+      "serves": ["activate", "retain"]
+    },
+    {
+      "id": "design_system",
+      "name": "A shared component library",
+      "about": "One set of components and patterns, used by every team.",
+      "area": "system",
+      "eng": 10,
+      "design": 24,
+      "data": 0,
+      "clar": 0.7,
+      "debt": -8,
+      "quality": {
+        "use": 10
+      },
+      "effects": {
+        "young": {
+          "s1": 0.0316
+        },
+        "family": {
+          "s1": 0.0211
+        }
+      },
+      "sponsor": "eng",
+      "serves": ["quality", "debt"]
+    },
+    {
+      "id": "a11y_audit",
+      "name": "Accessibility audit and fixes",
+      "about": "Test the bill-pay journey with screen readers, large text and switch control, and fix what fails.",
+      "area": "accessibility",
+      "eng": 12,
+      "design": 14,
+      "data": 0,
+      "clar": 0.6,
+      "debt": -2,
+      "quality": {
+        "use": 6
+      },
+      "effects": {
+        "older": {
+          "s2": 0.0936,
+          "s3": 0.1123
+        },
+        "family": {
+          "s3": 0.0281
+        }
+      },
+      "scale": [
+        {
+          "v": "a11y_gap",
+          "ref": 0.2,
+          "keys": ["s2", "s3"]
+        }
+      ],
+      "sponsor": "ext",
+      "serves": ["quality", "activate"]
+    },
+    {
+      "id": "biometric_login",
+      "name": "Biometric sign-in for payments",
+      "about": "A fingerprint or face check instead of a password and an OTP.",
+      "area": "flow",
+      "eng": 16,
+      "design": 6,
+      "data": 0,
+      "clar": 0.8,
+      "debt": 1,
+      "effects": {
+        "young": {
+          "s2": 0.1467
+        },
+        "family": {
+          "s2": 0.1174
+        }
+      },
+      "sponsor": "eng",
+      "serves": ["activate"]
+    },
+    {
+      "id": "bill_scan",
+      "name": "Scan-and-pay for paper bills",
+      "about": "Photograph a paper bill and the app fills in the payment.",
+      "area": "flow",
+      "eng": 22,
+      "design": 10,
+      "data": 0,
+      "clar": 0.5,
+      "debt": 2,
+      "effects": {
+        "young": {
+          "s1": 0.1551,
+          "s2": 0.1551,
+          "s3": 0.1241
+        },
+        "family": {
+          "s1": 0.1551,
+          "s2": 0.1551,
+          "s3": 0.1241
+        }
+      },
+      "scale": [
+        {
+          "v": "scan_adoption",
+          "ref": 0.6,
+          "keys": ["s1", "s2", "s3"]
+        }
+      ],
+      "side_cost": {
+        "per_quarter": 79.1
+      },
+      "sponsor": "biz",
+      "serves": ["grow", "activate"],
+      "risky": true
+    },
+    {
+      "id": "rebrand",
+      "name": "The chief executive's rebrand of the whole app",
+      "about": "A new look, new icons and a new home screen, shipped before the festival campaign. The chief executive's favourite.",
+      "area": "brand",
+      "eng": 20,
+      "design": 30,
+      "data": 0,
+      "clar": 0.4,
+      "debt": 3,
+      "effects": {
+        "young": {
+          "s1": 0.5782,
+          "churn": -0.0468
+        },
+        "family": {
+          "s1": 0.3614,
+          "churn": -0.0584
+        },
+        "older": {
+          "churn": -0.0935
+        }
+      },
+      "scale": [
+        {
+          "v": "rebrand_confusion",
+          "ref": 0.1,
+          "keys": ["churn"]
+        }
+      ],
+      "sponsor": "lead",
+      "serves": ["grow", "retain"],
+      "big": true,
+      "risky": true,
+      "fav": true
+    },
+    {
+      "id": "nav_simplification",
+      "name": "Simplify the home screen",
+      "about": "Fewer entries, a clearer first screen, and bill pay one tap from it.",
+      "area": "flow",
+      "eng": 6,
+      "design": 12,
+      "data": 0,
+      "clar": 0.8,
+      "debt": 0,
+      "effects": {
+        "young": {
+          "s1": 0.0328
+        },
+        "family": {
+          "s1": 0.0328
+        },
+        "older": {
+          "s1": 0.0437
+        }
+      },
+      "sponsor": "design",
+      "serves": ["activate", "grow"]
+    },
+    {
+      "id": "error_states",
+      "name": "Better error and empty states",
+      "about": "Say what went wrong and what to do, in every place a payment can fail.",
+      "area": "words",
+      "eng": 6,
+      "design": 6,
+      "data": 0,
+      "clar": 0.9,
+      "debt": 0,
+      "effects": {
+        "young": {
+          "s3": 0.0184
+        },
+        "family": {
+          "s3": 0.023
+        },
+        "older": {
+          "s3": 0.0275
+        }
+      },
+      "sponsor": "design",
+      "serves": ["activate"]
+    },
+    {
+      "id": "motion_feedback",
+      "name": "Feedback and motion that show progress",
+      "about": "Small movements that tell people the app heard them.",
+      "area": "craft",
+      "eng": 4,
+      "design": 8,
+      "data": 0,
+      "clar": 0.9,
+      "debt": 0,
+      "quality": {
+        "use": 3
+      },
+      "effects": {
+        "young": {
+          "s3": 0.013
+        },
+        "family": {
+          "s3": 0.013
+        }
+      },
+      "sponsor": "design",
+      "serves": ["quality"]
+    },
+    {
+      "id": "analytics_v2",
+      "name": "Funnel analytics for bill pay",
+      "about": "Record every step of bill pay as events. Raises measurement to level 2.",
+      "area": "learning",
+      "eng": 8,
+      "design": 0,
+      "data": 2,
+      "clar": 0.9,
+      "debt": -1,
+      "enables": 2,
+      "effects": {},
+      "sponsor": "eng",
+      "serves": ["learn"]
+    },
+    {
+      "id": "design_debt_cleanup",
+      "name": "Clear the design debt",
+      "about": "Retire the one-off screens, orphan flows and four different button styles.",
+      "area": "system",
+      "eng": 8,
+      "design": 14,
+      "data": 0,
+      "clar": 0.7,
+      "debt": -10,
+      "effects": {},
+      "sponsor": "design",
+      "serves": ["debt", "quality"]
+    }
+  ],
+  "squad": {
+    "eng": 7,
+    "design": 4,
+    "data": 2,
+    "cost_eng": 8.75,
+    "cost_design": 8,
+    "cost_data": 8,
+    "pm": 12,
+    "fixed": 1210,
+    "marketing": 400
+  },
+  "start": {
+    "debt": 55,
+    "reliability": 65,
+    "usability": 52,
+    "morale": 66,
+    "trust": {
+      "eng": 55,
+      "design": 66,
+      "biz": 48,
+      "lead": 55,
+      "ext": 50
+    },
+    "cash": 3000,
+    "level": 0
+  },
+  "incident_base": 0.5,
+  "design_ref": 38,
+  "hidden": [
+    {
+      "id": "flow_share",
+      "label": "Share of people who give up because of the flow, not the words",
+      "description": "Product says it is the seven taps. Nobody has watched a customer try.",
+      "brief": 0.6,
+      "range": [0.2, 0.75],
+      "unit": "share"
+    },
+    {
+      "id": "words_share",
+      "label": "How much of the drop-off the words explain",
+      "description": "Support hears about the words on the phone, from the people who gave up and called.",
+      "brief": 0.15,
+      "range": [0.05, 0.6],
+      "unit": "share"
+    },
+    {
+      "id": "a11y_gap",
+      "label": "How big the accessibility gap really is",
+      "description": "The last audit was two years ago and covered the old app. Compliance reads it as a small gap.",
+      "brief": 0.2,
+      "range": [0.1, 0.7],
+      "unit": "share"
+    },
+    {
+      "id": "scan_adoption",
+      "label": "Share of customers who would scan a paper bill",
+      "description": "The business case came from a survey of people who already use their camera in the app.",
+      "brief": 0.6,
+      "range": [0.1, 0.8],
+      "unit": "share"
+    },
+    {
+      "id": "rebrand_confusion",
+      "label": "How much a new look confuses existing customers",
+      "description": "The chief executive saw the new look tested on staff, who know the old one is going.",
+      "brief": 0.1,
+      "range": [0.05, 0.5],
+      "unit": "share"
+    }
+  ],
+  "events": [
+    {
+      "id": "a11y_complaint",
+      "name": "A video of a blind customer failing to pay a bill",
+      "weight": 0.35,
+      "signal": "A customer advocacy group has posted a video of a blind customer failing to pay a bill in your app, and the regulator has asked for a response.",
+      "body": "The pay-bill journey cannot be completed with a screen reader. The regulator wants a plan with dates.",
+      "cause": "real_gap",
+      "direction": "plan_with_dates",
+      "causes": [
+        {
+          "id": "real_gap",
+          "label": "The journey is not accessible"
+        },
+        {
+          "id": "one_off_bug",
+          "label": "A one-off bug"
+        },
+        {
+          "id": "rival_stunt",
+          "label": "A stunt by a rival"
+        }
+      ],
+      "directions": [
+        {
+          "id": "plan_with_dates",
+          "label": "Publish a plan with dates and fix the journey first"
+        },
+        {
+          "id": "statement_only",
+          "label": "Issue a statement and promise to do better"
+        },
+        {
+          "id": "contest",
+          "label": "Contest the claim"
+        }
+      ],
+      "effects": {
+        "older": {
+          "churn": -0.15,
+          "s3": -0.1
+        },
+        "family": {
+          "s3": -0.03
+        }
+      },
+      "mitigations": [
+        {
+          "live": "a11y_audit",
+          "by": 0.35
+        },
+        {
+          "live": "design_system",
+          "by": 0.15
+        },
+        {
+          "trust": ["ext", 55],
+          "by": 0.1
+        }
+      ]
+    },
+    {
+      "id": "rebrand_order",
+      "name": "The rebrand is ordered ahead of everything",
+      "weight": 0.35,
+      "signal": "The chief executive has ordered the rebrand to ship before the festival campaign, whatever else is on the roadmap.",
+      "body": "The campaign is booked and the agency has delivered the new look. Engineering is being asked to drop other work.",
+      "cause": "exec_pet",
+      "direction": "scope_and_sequence",
+      "causes": [
+        {
+          "id": "exec_pet",
+          "label": "A pet project from the top"
+        },
+        {
+          "id": "market_need",
+          "label": "A real market need"
+        },
+        {
+          "id": "agency_push",
+          "label": "The agency pushing for scope"
+        }
+      ],
+      "directions": [
+        {
+          "id": "scope_and_sequence",
+          "label": "Agree a scoped, phased version and protect the core journey"
+        },
+        {
+          "id": "comply_fully",
+          "label": "Comply fully"
+        },
+        {
+          "id": "refuse",
+          "label": "Refuse"
+        }
+      ],
+      "effects": {
+        "young": {
+          "s1": -0.04
+        },
+        "family": {
+          "s3": -0.04,
+          "churn": -0.04
+        },
+        "older": {
+          "churn": -0.05
+        }
+      },
+      "mitigations": [
+        {
+          "live": "design_system",
+          "by": 0.3
+        },
+        {
+          "trust": ["lead", 58],
+          "by": 0.2
+        },
+        {
+          "level": 1,
+          "by": 0.1
+        }
+      ]
+    },
+    {
+      "id": "competitor_launch",
+      "name": "A rival launches one-tap bill pay",
+      "weight": 0.3,
+      "signal": "A rival bank has launched one-tap bill pay, and your app-store rating has slipped.",
+      "body": "The rival's flow is slick and heavily advertised. Your completion rate has not changed, but your new-user numbers have.",
+      "cause": "rival_launch",
+      "direction": "differentiate",
+      "causes": [
+        {
+          "id": "rival_launch",
+          "label": "A rival's one-tap flow"
+        },
+        {
+          "id": "our_release",
+          "label": "Our last release"
+        },
+        {
+          "id": "seasonal",
+          "label": "A seasonal dip"
+        }
+      ],
+      "directions": [
+        {
+          "id": "differentiate",
+          "label": "Fix our biggest drop-off first and say so plainly"
+        },
+        {
+          "id": "match_one_tap",
+          "label": "Rush a one-tap clone"
+        },
+        {
+          "id": "ignore",
+          "label": "Ignore it"
+        }
+      ],
+      "effects": {
+        "young": {
+          "inflow": -0.15,
+          "s1": -0.05
+        },
+        "family": {
+          "inflow": -0.08
+        }
+      },
+      "mitigations": [
+        {
+          "live": "flow_redesign",
+          "by": 0.3
+        },
+        {
+          "live": "nav_simplification",
+          "by": 0.15
+        },
+        {
+          "level": 1,
+          "by": 0.1
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "redesign_core",
+      "name": "Redesign the core journeys",
+      "pitch": "Rebuild bill pay and the home screen around what customers are trying to do.",
+      "inflow": 1.05,
+      "arpu": 1.1,
+      "cost": 1,
+      "churn": 0.88,
+      "marketing": 1,
+      "needs": {
+        "use": 60,
+        "trust": ["eng", 58]
+      }
+    },
+    {
+      "id": "system_first",
+      "name": "Build the system first",
+      "pitch": "A component library and clean foundations, so every later change is cheaper.",
+      "inflow": 1,
+      "arpu": 1.05,
+      "cost": 0.92,
+      "churn": 0.95,
+      "marketing": 1,
+      "needs": {
+        "debt_below": 50
+      }
+    },
+    {
+      "id": "fix_worst",
+      "name": "Fix the worst tasks",
+      "pitch": "Find the five tasks people fail most and fix those, nothing else.",
+      "inflow": 1,
+      "arpu": 1.06,
+      "cost": 0.97,
+      "churn": 0.92,
+      "marketing": 0.9,
+      "needs": {
+        "rel": 55
+      }
+    }
+  ],
+  "root": {
+    "prompt": "Which of these do you believe is why people give up on bill pay?",
+    "options": [
+      {
+        "id": "flow_steps",
+        "label": "The journey asks for too many steps"
+      },
+      {
+        "id": "words_unclear",
+        "label": "The words are confusing"
+      },
+      {
+        "id": "trust_gap",
+        "label": "People do not trust the screens"
+      },
+      {
+        "id": "slow_app",
+        "label": "The app is too slow"
+      },
+      {
+        "id": "need_more_data",
+        "label": "I need more data"
+      }
+    ],
+    "dive": "flow_share",
+    "threshold": 0.45,
+    "high": "flow_steps",
+    "low": "words_unclear"
+  },
+  "measurement": [
+    {
+      "level": 0,
+      "label": "Opens and payments",
+      "shows": "Arrivals, completed payments, customers and the money. Nothing in between."
+    },
+    {
+      "level": 1,
+      "label": "Core events",
+      "shows": "Also the first step and the share of customers lost each quarter."
+    },
+    {
+      "level": 2,
+      "label": "The full funnel",
+      "shows": "Also every step and every conversion rate, by segment."
+    }
+  ],
+  "quarters": [
+    {
+      "n": 1,
+      "title": "Nobody has watched them try",
+      "opening": "{company} makes {hold_profit} a quarter. Of every 100 young customers who open bill pay, {per100_young} finish; of every 100 older customers, {per100_older}. Right now the app records opens and completed payments, and nothing in between. Your design team and engineers have about {road} weeks of engineering this quarter."
+    },
+    {
+      "n": 2,
+      "title": "First results",
+      "opening": "Last quarter {shipped} shipped. Profit was {profit}, {delta} on the quarter before. {learned} {pleased}"
+    },
+    {
+      "n": 3,
+      "title": "The shock",
+      "opening": "Last quarter {shipped} shipped and profit was {profit}. Something has changed outside the team. Read the signal below, say what you think is behind it and whether you checked, and decide how to answer."
+    },
+    {
+      "n": 4,
+      "title": "The term sheet",
+      "opening": "The board will back one of three plans for next year. Profit last quarter was {profit}. Where you stand: usability {U}, reliability {R}, design and technical debt {D}, engineering trust {trust_eng}, outside trust {trust_ext}."
+    }
+  ],
+  "rubric": {
+    "dimensions": [
+      {
+        "id": "strategy",
+        "name": "Problem framing and focus",
+        "weight": 10
+      },
+      {
+        "id": "evidence",
+        "name": "Research and evidence",
+        "weight": 20
+      },
+      {
+        "id": "delivery",
+        "name": "Craft and delivery",
+        "weight": 15
+      },
+      {
+        "id": "stewardship",
+        "name": "Systems, accessibility and quality",
+        "weight": 20
+      },
+      {
+        "id": "leadership",
+        "name": "Collaboration",
+        "weight": 15
+      },
+      {
+        "id": "adapt",
+        "name": "Adaptability",
+        "weight": 5
+      },
+      {
+        "id": "value",
+        "name": "Impact",
+        "weight": 15
+      }
+    ],
+    "doubled": ["priority_alignment", "diagnosis", "learned_before_bets", "delivered_vs_best", "value_created", "plan_choice"],
+    "bands": [
+      {
+        "min": 90,
+        "label": "Exceptional"
+      },
+      {
+        "min": 75,
+        "label": "Strong"
+      },
+      {
+        "min": 60,
+        "label": "Competent"
+      },
+      {
+        "min": 40,
+        "label": "Weak"
+      },
+      {
+        "min": 0,
+        "label": "Poor"
+      }
+    ]
+  },
+  "calibration": {
+    "seeds": 40,
+    "bots": [
+      {
+        "id": "do_nothing",
+        "expected_final": {
+          "min": 0,
+          "max": 5
+        }
+      },
+      {
+        "id": "random",
+        "expected_final": {
+          "min": 20,
+          "max": 45
+        }
+      },
+      {
+        "id": "feature_factory",
+        "expected_final": {
+          "min": 10,
+          "max": 40
+        }
+      },
+      {
+        "id": "debt_first",
+        "expected_final": {
+          "min": 35,
+          "max": 65
+        }
+      },
+      {
+        "id": "textbook",
+        "expected_final": {
+          "min": 35,
+          "max": 65
+        }
+      },
+      {
+        "id": "evidence_led",
+        "expected_final": {
+          "min": 80,
+          "max": 100
+        }
+      }
+    ]
+  }
+}

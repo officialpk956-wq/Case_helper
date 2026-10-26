@@ -1,0 +1,930 @@
+{
+  "family": "venture",
+  "schema_version": "0.1",
+  "id": "tallyhouse_good_better_best",
+  "title": "Good, Better, Best",
+  "version": "1.0.0",
+  "meta": {
+    "domain": "product",
+    "seat": "product_manager",
+    "order": 4,
+    "audience": ["product-managers", "apm", "product-students"],
+    "est_minutes": 75,
+    "locale": "en-IN",
+    "inspiration": "A product manager's year in a company with a problem: four quarters, a squad, hidden facts that sponsors state wrongly, one market event and a plan for the year after.",
+    "rights_note": "Original scenario. The company, the people, the product and every number are invented."
+  },
+  "company": {
+    "name": "Tallyhouse",
+    "one_liner": "A B2B time-tracking and project-profitability tool for creative agencies whose growth has plateaued on one plan at one price.",
+    "stage": "Seed-plus, losing about ₹60 lakh a quarter, with about six quarters of cash",
+    "market": "Creative agencies in India and Southeast Asia: design studios, advertising shops, web agencies",
+    "business_model": "A monthly subscription per account, one plan at one price.",
+    "product": "The core product: time tracking, project budgets, invoicing and reports.",
+    "role": "Product manager for the core product. Your squad is seven engineers, two designers and two analysts.",
+    "brief": "The chief executive has to show a route to profit within four quarters or the next round is gone. Growth has plateaued on one plan at one price, and every team has a theory. You can see trial starts and payments, but not what happens between. You have four quarters of twelve weeks.",
+    "stakeholders": [
+      {
+        "name": "Farah Siddiqui",
+        "role": "Chief Executive",
+        "says": "I need a route to profit I can show the board in four quarters. Tell me what gets us there."
+      },
+      {
+        "name": "Vikram Nair",
+        "role": "Head of Sales",
+        "says": "Three network deals died on security reviews. Give me single sign-on and an audit log and I will close them."
+      },
+      {
+        "name": "Anjali Menon",
+        "role": "Finance Lead",
+        "says": "Billing complaints are a quarter of the tickets. It is not the problem."
+      },
+      {
+        "name": "Imran Sheikh",
+        "role": "Customer Success",
+        "says": "Heavy users keep asking to pay for more. A usage add-on will sell itself."
+      },
+      {
+        "name": "Sunita Rao",
+        "role": "Chair of the board",
+        "says": "One price for everybody leaves money on the table."
+      },
+      {
+        "name": "Prakash Hegde",
+        "role": "Head of Engineering",
+        "says": "The billing module has caused every outage this year and nobody wants to touch it."
+      },
+      {
+        "name": "Divya Rao",
+        "role": "Design Lead",
+        "says": "Trials get lost in the first session."
+      }
+    ]
+  },
+  "stage_names": ["Trial activated", "Upgrade considered", "Paid"],
+  "segments": [
+    {
+      "id": "solo",
+      "name": "Solo and small studios",
+      "description": "Freelancers and studios of one to five people.",
+      "inflow": 20000,
+      "stages": [0.45, 0.1, 0.55],
+      "churn": 0.09,
+      "arpu": 2100,
+      "var_cost": 380,
+      "customers": 4800,
+      "stage_cost": 40
+    },
+    {
+      "id": "mid",
+      "name": "Mid-size agencies",
+      "description": "Agencies of six to eighty people.",
+      "inflow": 1800,
+      "stages": [0.6, 0.35, 0.4],
+      "churn": 0.05,
+      "arpu": 14000,
+      "var_cost": 2100,
+      "customers": 2800,
+      "stage_cost": 600
+    },
+    {
+      "id": "ent",
+      "name": "Networks and enterprise",
+      "description": "Networks and holding companies with many offices.",
+      "inflow": 140,
+      "stages": [0.7, 0.4, 0.3],
+      "churn": 0.04,
+      "arpu": 95000,
+      "var_cost": 12000,
+      "customers": 250,
+      "stage_cost": 9000
+    }
+  ],
+  "items": [
+    {
+      "id": "onboarding_wizard",
+      "name": "Guided set-up",
+      "about": "Guided set-up: import clients, invite a teammate, log a first timesheet.",
+      "area": "activation",
+      "eng": 15,
+      "design": 6,
+      "data": 0,
+      "clar": 0.7,
+      "debt": 1,
+      "effects": {
+        "solo": {
+          "s1": 0.198,
+          "s2": 0.066
+        },
+        "mid": {
+          "s1": 0.11
+        }
+      },
+      "sponsor": "design",
+      "serves": ["activate", "grow"]
+    },
+    {
+      "id": "tiering",
+      "name": "Three-tier packaging",
+      "about": "Replace the single plan with three tiers: Good, Better, Best.",
+      "area": "monetise",
+      "eng": 12,
+      "design": 6,
+      "data": 2,
+      "clar": 0.5,
+      "debt": 1,
+      "effects": {
+        "solo": {
+          "arpu": 0.0474,
+          "s3": -0.23664
+        },
+        "mid": {
+          "arpu": 0.05925,
+          "s3": -0.1972
+        },
+        "ent": {
+          "arpu": 0.0395
+        }
+      },
+      "scale": [
+        {
+          "v": "elasticity",
+          "ref": 0.9,
+          "keys": ["s3"]
+        }
+      ],
+      "sponsor": "biz",
+      "serves": ["monetise"],
+      "needs": {
+        "level": 1
+      },
+      "risky": true
+    },
+    {
+      "id": "usage_addon",
+      "name": "Usage-based add-on",
+      "about": "A metered add-on for the heaviest users (projects, exports, storage).",
+      "area": "monetise",
+      "eng": 24,
+      "design": 4,
+      "data": 2,
+      "clar": 0.4,
+      "debt": 2,
+      "effects": {
+        "mid": {
+          "arpu": 0.1484,
+          "churn": 0.02226
+        },
+        "ent": {
+          "arpu": 0.13356
+        }
+      },
+      "scale": [
+        {
+          "v": "addon_wtp",
+          "ref": 1.1,
+          "keys": ["arpu"]
+        }
+      ],
+      "side_cost": {
+        "per_quarter": 47.175
+      },
+      "sponsor": "biz",
+      "serves": ["monetise"],
+      "needs": {
+        "level": 1
+      },
+      "risky": true,
+      "big": true
+    },
+    {
+      "id": "annual_plan",
+      "name": "Annual-plan upsell",
+      "about": "A discount for paying annually, in the app and at renewal.",
+      "area": "retention",
+      "eng": 9,
+      "design": 2,
+      "data": 0,
+      "clar": 0.8,
+      "debt": 0,
+      "effects": {
+        "solo": {
+          "churn": 0.3204,
+          "arpu": -0.04,
+          "s3": 0.0712
+        },
+        "mid": {
+          "churn": 0.2136,
+          "arpu": -0.03
+        }
+      },
+      "sponsor": "biz",
+      "serves": ["retain"]
+    },
+    {
+      "id": "sso_audit",
+      "name": "Single sign-on and audit log",
+      "about": "Single sign-on and an audit log, which security reviews at large agencies demand. The sales head's favourite.",
+      "area": "enterprise",
+      "eng": 27,
+      "design": 4,
+      "data": 0,
+      "clar": 0.6,
+      "debt": 3,
+      "effects": {
+        "ent": {
+          "s3": 1.1942,
+          "churn": 0.3412
+        },
+        "mid": {
+          "s3": 0.1706
+        }
+      },
+      "scale": [
+        {
+          "v": "ent_pipeline",
+          "ref": 0.75,
+          "keys": ["s3", "churn"]
+        }
+      ],
+      "side_cost": {
+        "per_quarter": 29.184
+      },
+      "sponsor": "biz",
+      "serves": ["grow", "monetise"],
+      "big": true,
+      "fav": true
+    },
+    {
+      "id": "billing_rewrite",
+      "name": "Billing module rewrite",
+      "about": "Rewrite the billing module (proration, taxes, invoices) behind every outage this year. Pays down technical debt.",
+      "area": "debt",
+      "eng": 36,
+      "design": 2,
+      "data": 1,
+      "clar": 0.4,
+      "debt": -14,
+      "quality": {
+        "rel": 6
+      },
+      "effects": {
+        "solo": {
+          "churn": 0.1584
+        },
+        "mid": {
+          "churn": 0.132
+        },
+        "ent": {
+          "churn": 0.1056
+        }
+      },
+      "scale": [
+        {
+          "v": "billing_share",
+          "ref": 0.25,
+          "keys": ["churn"]
+        }
+      ],
+      "sponsor": "eng",
+      "serves": ["debt", "retain"],
+      "big": true
+    },
+    {
+      "id": "integrations",
+      "name": "Accounting integrations",
+      "about": "Sync with the three accounting tools agencies use.",
+      "area": "growth",
+      "eng": 24,
+      "design": 4,
+      "data": 0,
+      "clar": 0.6,
+      "debt": 2,
+      "effects": {
+        "mid": {
+          "s3": 0.166,
+          "churn": 0.0996
+        },
+        "solo": {
+          "s3": 0.0996
+        }
+      },
+      "sponsor": "biz",
+      "serves": ["grow", "retain"]
+    },
+    {
+      "id": "mobile_time",
+      "name": "Mobile timesheets",
+      "about": "A mobile timesheet for people who bill by the hour.",
+      "area": "retention",
+      "eng": 21,
+      "design": 8,
+      "data": 0,
+      "clar": 0.6,
+      "debt": 2,
+      "effects": {
+        "solo": {
+          "s1": 0.091,
+          "churn": 0.0728
+        },
+        "mid": {
+          "churn": 0.091
+        }
+      },
+      "sponsor": "design",
+      "serves": ["retain"]
+    },
+    {
+      "id": "reporting",
+      "name": "Profitability dashboards",
+      "about": "Profitability dashboards: margin by client, by project, by person.",
+      "area": "monetise",
+      "eng": 18,
+      "design": 6,
+      "data": 0,
+      "clar": 0.6,
+      "debt": 1,
+      "effects": {
+        "mid": {
+          "arpu": 0.0304,
+          "churn": 0.019
+        },
+        "ent": {
+          "arpu": 0.0228
+        }
+      },
+      "sponsor": "biz",
+      "serves": ["monetise", "retain"]
+    },
+    {
+      "id": "design_system",
+      "name": "Design system rollout",
+      "about": "Roll out one component library across the app.",
+      "area": "quality",
+      "eng": 15,
+      "design": 12,
+      "data": 0,
+      "clar": 0.7,
+      "debt": -4,
+      "quality": {
+        "use": 10
+      },
+      "effects": {
+        "solo": {
+          "s1": 0.042
+        },
+        "mid": {
+          "s1": 0.028
+        }
+      },
+      "sponsor": "design",
+      "serves": ["quality"]
+    },
+    {
+      "id": "perf_reliability",
+      "name": "Performance and reliability sprint",
+      "about": "A sprint on speed and uptime.",
+      "area": "quality",
+      "eng": 15,
+      "design": 0,
+      "data": 0,
+      "clar": 0.8,
+      "debt": -2,
+      "quality": {
+        "rel": 12
+      },
+      "effects": {
+        "solo": {
+          "churn": 0.0285
+        },
+        "mid": {
+          "churn": 0.0285
+        },
+        "ent": {
+          "churn": 0.0285
+        }
+      },
+      "sponsor": "eng",
+      "serves": ["quality"]
+    },
+    {
+      "id": "upgrade_flow",
+      "name": "In-app upgrade flow",
+      "about": "In-app prompts and a one-page upgrade flow at the moments people hit a limit.",
+      "area": "monetise",
+      "eng": 12,
+      "design": 4,
+      "data": 0,
+      "clar": 0.7,
+      "debt": 1,
+      "effects": {
+        "solo": {
+          "s2": 0.2175
+        },
+        "mid": {
+          "s2": 0.1044
+        }
+      },
+      "sponsor": "biz",
+      "serves": ["monetise", "grow"]
+    },
+    {
+      "id": "analytics_v2",
+      "name": "Product analytics pipeline",
+      "about": "Record every step of the funnel as events, so the team can see where people leave. Raises measurement to level 2.",
+      "area": "learning",
+      "eng": 9,
+      "design": 0,
+      "data": 2,
+      "clar": 0.9,
+      "debt": -1,
+      "effects": {},
+      "sponsor": "eng",
+      "serves": ["learn"],
+      "enables": 2
+    }
+  ],
+  "squad": {
+    "eng": 7,
+    "design": 2,
+    "data": 2,
+    "cost_eng": 8.75,
+    "cost_design": 8,
+    "cost_data": 8,
+    "pm": 12,
+    "fixed": 331.75,
+    "marketing": 230
+  },
+  "start": {
+    "debt": 64,
+    "reliability": 66,
+    "usability": 48,
+    "morale": 64,
+    "trust": {
+      "eng": 58,
+      "design": 52,
+      "biz": 45,
+      "lead": 60,
+      "ext": 55
+    },
+    "cash": 400,
+    "level": 1
+  },
+  "incident_base": 0.5,
+  "design_ref": 18,
+  "hidden": [
+    {
+      "id": "elasticity",
+      "label": "How hard paid conversion falls when plans are repackaged",
+      "description": "How hard paid conversion falls when the plans are repackaged. Sales says customers will not mind.",
+      "brief": 0.9,
+      "range": [0.6, 2],
+      "unit": "multiple"
+    },
+    {
+      "id": "addon_wtp",
+      "label": "What customers will pay for a usage add-on, against what was heard",
+      "description": "What customers will pay for a usage add-on, relative to what customer success heard in renewal calls.",
+      "brief": 1.1,
+      "range": [0.4, 1.4],
+      "unit": "multiple"
+    },
+    {
+      "id": "billing_share",
+      "label": "Share of customer losses caused by billing errors",
+      "description": "The share of customer losses that billing errors cause. Finance counts only tickets filed as billing complaints.",
+      "brief": 0.25,
+      "range": [0.15, 0.5],
+      "unit": "share"
+    },
+    {
+      "id": "ent_pipeline",
+      "label": "Share of the enterprise upside that single sign-on really unlocks",
+      "description": "The share of the enterprise upside that single sign-on would really unlock; other things also stall large deals. Sales counts every lost deal that mentioned security.",
+      "brief": 0.75,
+      "range": [0.15, 0.95],
+      "unit": "share"
+    }
+  ],
+  "events": [
+    {
+      "id": "network_leaves",
+      "name": "A network of agencies leaves for a rival",
+      "weight": 0.35,
+      "signal": "The largest customer group has gone quiet and asked for a call about security reviews.",
+      "body": "A network with forty offices says it cannot stay without single sign-on and an audit trail.",
+      "cause": "missing_enterprise_features",
+      "direction": "enterprise_rescue",
+      "causes": [
+        {
+          "id": "missing_enterprise_features",
+          "label": "We lack what large buyers need"
+        },
+        {
+          "id": "price",
+          "label": "We are too expensive"
+        },
+        {
+          "id": "bugs",
+          "label": "Billing errors upset them"
+        }
+      ],
+      "directions": [
+        {
+          "id": "enterprise_rescue",
+          "label": "Commit to the missing features with dates"
+        },
+        {
+          "id": "discount",
+          "label": "Offer a discount"
+        },
+        {
+          "id": "wait",
+          "label": "Wait and see"
+        }
+      ],
+      "effects": {
+        "ent": {
+          "churn": -0.25,
+          "s3": -0.1
+        },
+        "mid": {
+          "churn": -0.03
+        }
+      },
+      "mitigations": [
+        {
+          "live": "sso_audit",
+          "by": 0.35
+        },
+        {
+          "trust": ["biz", 55],
+          "by": 0.15
+        },
+        {
+          "live": "reporting",
+          "by": 0.1
+        }
+      ]
+    },
+    {
+      "id": "rival_undercut",
+      "name": "A rival undercuts the mid tier",
+      "weight": 0.35,
+      "signal": "Upgrades from trial are slipping and sales say prospects keep quoting a competitor's price.",
+      "body": "A funded rival halves its price for agencies of your size.",
+      "cause": "price_competition",
+      "direction": "repackage_not_discount",
+      "causes": [
+        {
+          "id": "price_competition",
+          "label": "A competitor is cutting price"
+        },
+        {
+          "id": "onboarding",
+          "label": "Our onboarding got worse"
+        },
+        {
+          "id": "seasonal",
+          "label": "A seasonal dip"
+        }
+      ],
+      "directions": [
+        {
+          "id": "repackage_not_discount",
+          "label": "Repackage and sell value, do not match the price"
+        },
+        {
+          "id": "match_price",
+          "label": "Match the price"
+        },
+        {
+          "id": "ignore",
+          "label": "Ignore it"
+        }
+      ],
+      "effects": {
+        "mid": {
+          "s3": -0.12,
+          "arpu": -0.05
+        },
+        "solo": {
+          "s3": -0.08
+        }
+      },
+      "mitigations": [
+        {
+          "live": "tiering",
+          "by": 0.25
+        },
+        {
+          "live": "annual_plan",
+          "by": 0.15
+        },
+        {
+          "level": 1,
+          "by": 0.1
+        }
+      ]
+    },
+    {
+      "id": "security_scare",
+      "name": "A security scare reaches the press",
+      "weight": 0.3,
+      "signal": "A researcher has posted about a flaw in file sharing, and trial sign-ups have dipped.",
+      "body": "The flaw is real and already patched in your head, but nobody outside knows that.",
+      "cause": "vulnerability",
+      "direction": "disclose_and_patch",
+      "causes": [
+        {
+          "id": "vulnerability",
+          "label": "A real flaw was found"
+        },
+        {
+          "id": "rumour",
+          "label": "A rumour with nothing behind it"
+        },
+        {
+          "id": "competitor_smear",
+          "label": "A rival is spreading it"
+        }
+      ],
+      "directions": [
+        {
+          "id": "disclose_and_patch",
+          "label": "Disclose, patch, and tell customers"
+        },
+        {
+          "id": "deny",
+          "label": "Deny it"
+        },
+        {
+          "id": "quiet_fix",
+          "label": "Fix it quietly"
+        }
+      ],
+      "effects": {
+        "solo": {
+          "s1": -0.05,
+          "churn": -0.06
+        },
+        "mid": {
+          "s1": -0.05,
+          "churn": -0.06
+        },
+        "ent": {
+          "churn": -0.06
+        }
+      },
+      "incident": 1.5,
+      "mitigations": [
+        {
+          "rel": 70,
+          "by": 0.3
+        },
+        {
+          "live": "perf_reliability",
+          "by": 0.15
+        },
+        {
+          "trust": ["eng", 60],
+          "by": 0.15
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "upmarket",
+      "name": "Move up-market",
+      "pitch": "Build for large buyers: security, sign-on, support, longer deals.",
+      "inflow": 0.95,
+      "arpu": 1.18,
+      "cost": 1.05,
+      "churn": 0.9,
+      "marketing": 1.1,
+      "needs": {
+        "rel": 65,
+        "trust": ["biz", 55]
+      }
+    },
+    {
+      "id": "selfserve",
+      "name": "Own self-serve",
+      "pitch": "Make buying frictionless and win on volume.",
+      "inflow": 1.3,
+      "arpu": 0.97,
+      "cost": 1,
+      "churn": 1,
+      "marketing": 1.3,
+      "needs": {
+        "use": 55
+      }
+    },
+    {
+      "id": "profit",
+      "name": "Reach profit",
+      "pitch": "Cut spend, simplify, and stop losing money.",
+      "inflow": 0.9,
+      "arpu": 1.05,
+      "cost": 0.85,
+      "churn": 1,
+      "marketing": 0.75,
+      "needs": {
+        "debt_below": 65
+      }
+    }
+  ],
+  "root": {
+    "prompt": "Which of these do you believe is behind the plateau?",
+    "options": [
+      {
+        "id": "billing_quality",
+        "label": "Billing errors are driving people away"
+      },
+      {
+        "id": "packaging",
+        "label": "The plans do not fit what people will pay"
+      },
+      {
+        "id": "no_enterprise",
+        "label": "We lack what big buyers need"
+      },
+      {
+        "id": "onboarding",
+        "label": "Trials are not getting started"
+      },
+      {
+        "id": "need_more_data",
+        "label": "I need more data"
+      }
+    ],
+    "dive": "billing_share",
+    "threshold": 0.38,
+    "high": "billing_quality",
+    "low": "packaging"
+  },
+  "measurement": [
+    {
+      "level": 0,
+      "label": "Trial starts and payments",
+      "shows": "Arrivals, payments, customers and the money. Nothing in between."
+    },
+    {
+      "level": 1,
+      "label": "Core events",
+      "shows": "Also activated trials and the share of customers lost each quarter."
+    },
+    {
+      "level": 2,
+      "label": "The full funnel",
+      "shows": "Also every step and every conversion rate, by segment."
+    }
+  ],
+  "quarters": [
+    {
+      "n": 1,
+      "title": "The runway",
+      "opening": "{company} has {cash} in the bank and {hold_profit} a quarter if nothing changes: {runway}. Only {per100_solo} of every 100 solo trials end up paying, and {per100_mid} of every 100 mid-size ones. Your squad has about {road} weeks of engineering this quarter. You can see trial starts and payments, but not what happens between."
+    },
+    {
+      "n": 2,
+      "title": "First results",
+      "opening": "Last quarter {shipped} shipped. Profit was {profit}, {delta} on the quarter before. {learned} {pleased}"
+    },
+    {
+      "n": 3,
+      "title": "The shock",
+      "opening": "Last quarter {shipped} shipped and profit was {profit}. Something has changed outside the product. Read the signal below, say what you think is behind it and whether you checked, and decide how to answer."
+    },
+    {
+      "n": 4,
+      "title": "The term sheet",
+      "opening": "The board will back one of three plans for next year. Profit last quarter was {profit}. Where you stand: usability {U}, reliability {R}, technical debt {D}, engineering trust {trust_eng}, business trust {trust_biz}."
+    }
+  ],
+  "rubric": {
+    "dimensions": [
+      {
+        "id": "strategy",
+        "name": "Strategy and focus",
+        "weight": 20
+      },
+      {
+        "id": "evidence",
+        "name": "Customer and evidence",
+        "weight": 20
+      },
+      {
+        "id": "delivery",
+        "name": "Delivery and execution",
+        "weight": 15
+      },
+      {
+        "id": "stewardship",
+        "name": "Quality and technical stewardship",
+        "weight": 10
+      },
+      {
+        "id": "leadership",
+        "name": "Cross-team leadership",
+        "weight": 10
+      },
+      {
+        "id": "adapt",
+        "name": "Adaptability",
+        "weight": 10
+      },
+      {
+        "id": "value",
+        "name": "Business value",
+        "weight": 15
+      }
+    ],
+    "doubled": ["priority_alignment", "diagnosis", "learned_before_bets", "delivered_vs_best", "value_created", "plan_choice"],
+    "bands": [
+      {
+        "min": 90,
+        "label": "Exceptional"
+      },
+      {
+        "min": 75,
+        "label": "Strong"
+      },
+      {
+        "min": 60,
+        "label": "Competent"
+      },
+      {
+        "min": 40,
+        "label": "Weak"
+      },
+      {
+        "min": 0,
+        "label": "Poor"
+      }
+    ]
+  },
+  "calibration": {
+    "seeds": 40,
+    "bots": [
+      {
+        "id": "do_nothing",
+        "expected_final": {
+          "min": 0,
+          "max": 5
+        }
+      },
+      {
+        "id": "random",
+        "expected_final": {
+          "min": 30,
+          "max": 40
+        },
+        "revised": {
+          "min": 15,
+          "max": 35,
+          "why": "Written as 15-35 before the first run. The mean over 40 games was 31.2 to 36.7, so the range was revised to 30-40 after seeing results, at the owner's instruction. It was set to fit what was observed, so landing inside it shows nothing about the original expectation."
+        }
+      },
+      {
+        "id": "feature_factory",
+        "expected_final": {
+          "min": 20,
+          "max": 40
+        }
+      },
+      {
+        "id": "debt_first",
+        "expected_final": {
+          "min": 45,
+          "max": 55
+        },
+        "revised": {
+          "min": 25,
+          "max": 45,
+          "why": "Written as 25-45 before the first run. The first run put it at 60-65, the dimension weights were then changed, and the range was revised to 45-55 after seeing results, at the owner's instruction."
+        }
+      },
+      {
+        "id": "textbook",
+        "expected_final": {
+          "min": 40,
+          "max": 60
+        }
+      },
+      {
+        "id": "evidence_led",
+        "expected_final": {
+          "min": 90,
+          "max": 95
+        },
+        "revised": {
+          "min": 65,
+          "max": 90,
+          "why": "Written as 65-90 before the first run. The mean over 40 games was 91.6 to 92.9, so the range was revised to 90-95 after seeing results, at the owner's instruction. It was set to fit what was observed."
+        }
+      }
+    ]
+  }
+}

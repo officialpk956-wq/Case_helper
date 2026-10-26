@@ -1,0 +1,110 @@
+Prototype calibration of the product-manager seat, 40 worlds per manager and case.
+Reproduce: node proto/venture/run.ts 40 [--from 101] ; node proto/venture/items.ts <0|1> 40
+Priors were written into run.ts before the first run. Money is rupees lakh (1 L = 100,000 rupees). The thresholds and constants were tuned while looking at seeds 1-40; seeds 101-140 were not looked at until the end.
+Three ranges were REVISED AFTER SEEING RESULTS, at the owner's instruction. debt_first: written 25-45, first run 60-65, weights changed (option D), range now 45-55. random: written 15-35, observed 31.2-36.7, now 30-40. evidence_led: written 65-90, observed 91.6-92.9, now 90-95. The last two were set to fit what was observed, so landing inside them proves nothing about the original expectations. The ranges apply to a mean over 40 games. do_nothing (0-5), textbook (40-60) and feature_factory (20-40) are as first written.
+These tables are from the rubric with option D. Seeds 101-140 were seen under the first weights before the weights were changed, so they are not fully held out for that change.
+
+SEEDS 1-40
+=== The Leaky Funnel (Marigold Pay), 40 worlds, seeds 1-40 ===
+do_nothing       score   0.0  [  0-  0]  prior 0-5    ok        profit vs idle      0 L   next year vs idle (builder)      0 L   end cash   3167 L   customers 562k
+random           score  36.7  [ 19- 47]  prior 30-40  ok        profit vs idle    -88 L   next year vs idle (builder)    939 L   end cash   3079 L   customers 624k
+feature_factory  score  20.6  [ 10- 32]  prior 20-40  ok        profit vs idle   -554 L   next year vs idle (builder)   1453 L   end cash   2613 L   customers 671k
+debt_first       score  53.0  [ 47- 60]  prior 45-55  ok        profit vs idle    222 L   next year vs idle (builder)    801 L   end cash   3389 L   customers 596k
+textbook         score  50.4  [ 34- 65]  prior 40-60  ok        profit vs idle   -371 L   next year vs idle (builder)   1410 L   end cash   2796 L   customers 633k
+evidence_led     score  92.9  [ 71-100]  prior 90-95  ok        profit vs idle      4 L   next year vs idle (builder)   1876 L   end cash   3171 L   customers 655k
+oracle           score  71.6  [ 64- 78]  prior bench  ok        profit vs idle    190 L   next year vs idle (builder)   1850 L   end cash   3357 L   customers 658k
+dimension means (0-100)
+                  strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing               0         0         0         0         0         0         0
+random                  19        34        53        75         6        35        63
+feature_factory         16        27        51        25        20        11        35
+debt_first              25        33        60        72        85        61        71
+textbook                50        22        85        88        63        34        51
+evidence_led            85        95        89        88        84        94        92
+oracle                  62        41        95        88        79        92        83
+=== Good, Better, Best (Tallyhouse), 40 worlds, seeds 1-40 ===
+do_nothing       score   0.0  [  0-  0]  prior 0-5    ok        profit vs idle      0 L   next year vs idle (builder)      0 L   end cash    102 L   customers 8k
+random           score  35.2  [ 17- 51]  prior 30-40  ok        profit vs idle     30 L   next year vs idle (builder)    160 L   end cash    132 L   customers 8k
+feature_factory  score  21.3  [ 12- 28]  prior 20-40  ok        profit vs idle   -134 L   next year vs idle (builder)    213 L   end cash    -31 L   customers 9k
+debt_first       score  49.5  [ 42- 59]  prior 45-55  ok        profit vs idle     83 L   next year vs idle (builder)    200 L   end cash    185 L   customers 8k
+textbook         score  51.0  [ 34- 65]  prior 40-60  ok        profit vs idle     65 L   next year vs idle (builder)    189 L   end cash    167 L   customers 8k
+evidence_led     score  91.6  [ 79- 96]  prior 90-95  ok        profit vs idle     97 L   next year vs idle (builder)    321 L   end cash    199 L   customers 9k
+oracle           score  70.7  [ 62- 78]  prior bench  ok        profit vs idle    109 L   next year vs idle (builder)    316 L   end cash    212 L   customers 9k
+dimension means (0-100)
+                  strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing               0         0         0         0         0         0         0
+random                  15        39        43        66        24        29        60
+feature_factory         25        27        56         7        23        18        28
+debt_first              25        27        61        63        74        72        71
+textbook                50        27        85        75        47        22        60
+evidence_led            93        88        93        69        77        89        95
+oracle                  69        41        92        67        78        87        82
+
+HELD-OUT SEEDS 101-140
+=== The Leaky Funnel (Marigold Pay), 40 worlds, seeds 101-140 ===
+do_nothing       score   0.0  [  0-  0]  prior 0-5    ok        profit vs idle      0 L   next year vs idle (builder)      0 L   end cash   3187 L   customers 564k
+random           score  31.4  [ 12- 51]  prior 30-40  ok        profit vs idle   -186 L   next year vs idle (builder)    812 L   end cash   3001 L   customers 612k
+feature_factory  score  19.6  [ 11- 31]  prior 20-40  OUTSIDE   profit vs idle   -581 L   next year vs idle (builder)   1362 L   end cash   2606 L   customers 665k
+debt_first       score  53.5  [ 44- 60]  prior 45-55  ok        profit vs idle    211 L   next year vs idle (builder)    738 L   end cash   3398 L   customers 594k
+textbook         score  49.2  [ 34- 66]  prior 40-60  ok        profit vs idle   -408 L   next year vs idle (builder)   1367 L   end cash   2779 L   customers 635k
+evidence_led     score  91.9  [ 81-100]  prior 90-95  ok        profit vs idle     32 L   next year vs idle (builder)   1705 L   end cash   3219 L   customers 658k
+oracle           score  71.4  [ 64- 81]  prior bench  ok        profit vs idle    209 L   next year vs idle (builder)   1624 L   end cash   3397 L   customers 653k
+dimension means (0-100)
+                  strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing               0         0         0         0         0         0         0
+random                  14        29        47        77         4        27        57
+feature_factory         13        26        53        25        20        10        33
+debt_first              25        33        61        73        85        63        72
+textbook                46        21        86        88        60        33        52
+evidence_led            84        93        87        88        81        94        91
+oracle                  60        43        93        88        76        91        83
+=== Good, Better, Best (Tallyhouse), 40 worlds, seeds 101-140 ===
+do_nothing       score   0.0  [  0-  0]  prior 0-5    ok        profit vs idle      0 L   next year vs idle (builder)      0 L   end cash    104 L   customers 8k
+random           score  31.2  [ 15- 60]  prior 30-40  ok        profit vs idle     27 L   next year vs idle (builder)    143 L   end cash    131 L   customers 8k
+feature_factory  score  21.9  [ 11- 29]  prior 20-40  ok        profit vs idle   -129 L   next year vs idle (builder)    215 L   end cash    -25 L   customers 8k
+debt_first       score  48.8  [ 42- 57]  prior 45-55  ok        profit vs idle     87 L   next year vs idle (builder)    189 L   end cash    191 L   customers 8k
+textbook         score  51.0  [ 37- 62]  prior 40-60  ok        profit vs idle     65 L   next year vs idle (builder)    194 L   end cash    169 L   customers 8k
+evidence_led     score  91.7  [ 82- 98]  prior 90-95  ok        profit vs idle     91 L   next year vs idle (builder)    361 L   end cash    195 L   customers 9k
+oracle           score  71.5  [ 63- 79]  prior bench  ok        profit vs idle     99 L   next year vs idle (builder)    351 L   end cash    203 L   customers 9k
+dimension means (0-100)
+                  strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing               0         0         0         0         0         0         0
+random                  11        34        41        63        23        25        58
+feature_factory         28        27        55         8        22        17        29
+debt_first              25        27        59        63        75        74        68
+textbook                51        27        85        75        45        20        61
+evidence_led            92        90        93        69        79        85        95
+oracle                  71        42        93        69        77        86        82
+
+ITEM VALUES
+The Leaky Funnel: value in lakh over the year played and the year after (true world), against the guess at the briefing's figures
+item                  eng   guess    mean     sd     min     max  P(<0)  per-week(guess)
+kyc_camera             18     414     343    103     109     619   0.00  23.0
+kyc_defer              30     718     207    626   -1055    1412   0.42  23.9
+first_reward            9     199     101    202    -248     720   0.30  22.1
+lang_onboard           18     251     253     70     134     444   0.00  14.0
+support_bot            18     217     206     67      97     406   0.00  12.1
+salary_link            24     617     625    286     211    1593   0.00  25.7
+soundbox               30     715     454    929    -660    3367   0.40  23.8
+fraud_v2               18     110     109     39      45     229   0.00  6.1
+app_perf               12     105     105     38      53     198   0.00  8.8
+nudges                  6     113     117     35      64     217   0.00  18.8
+referral               15     238     245     86     130     476   0.00  15.8
+analytics_v2            9       0       0      0       0       0   0.00  0.0
+core_refactor          24       0       0      0       0       0   0.00  0.0
+
+Good, Better, Best: value in lakh over the year played and the year after (true world), against the guess at the briefing's figures
+item                  eng   guess    mean     sd     min     max  P(<0)  per-week(guess)
+onboarding_wizard      15      86      90     34      38     203   0.00  5.7
+tiering                12      93      46     68    -118     233   0.30  7.8
+usage_addon            24     179      98    198    -129     767   0.40  7.4
+annual_plan             9      49      44     15      22      81   0.00  5.5
+sso_audit              27     196      56    130    -177     355   0.38  7.2
+billing_rewrite        36      93     125     74      46     347   0.00  2.6
+integrations           24     123     132     60      50     277   0.00  5.1
+mobile_time            21      60      61     19      33     115   0.00  2.9
+reporting              18     110     116     40      59     224   0.00  6.1
+design_system          15      17      17      5       7      29   0.00  1.1
+perf_reliability       15      21      21      6      12      39   0.00  1.4
+upgrade_flow           12      82      78     24      44     157   0.00  6.8
+analytics_v2            9       0       0      0       0       0   0.00  0.0

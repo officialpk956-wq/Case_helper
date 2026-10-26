@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: pm-sim
+    runtime: node
+    plan: starter
+    buildCommand: npm ci
+    startCommand: npm run serve
+    healthCheckPath: /healthz
+    disk:
+      name: pm-sim-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 24.16.0
+      - key: USERS_FILE
+        value: /var/data/users.json
+      - key: RUNS_FILE
+        value: /var/data/runs.json
+      - key: PUBLIC_ORIGIN
+        sync: false
+      - key: CONTACT_EMAIL
+        sync: false

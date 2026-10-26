@@ -1,0 +1,8 @@
+node_modules/
+*.log
+out/
+data/
+.env
+.env.*
+*.tmp
+MOVE_VERIFICATION.json

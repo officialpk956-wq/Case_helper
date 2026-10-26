@@ -1,0 +1,786 @@
+{
+  "_notes": [
+    "DRAFT v0.1. All numbers are illustrative placeholders: the source casebook has none. Calibrate with the bots in `calibration` before anything is shown to players.",
+    "Engine-private. Never send this file to the browser: src/server.ts builds the public projection and keeps hidden_variables, lever effects, events, the rubric rules and the playbook server-side.",
+    "Original fictional company and original text. Inspired by the structure of a B2B learning case in which learners rush a deadline-bound programme at the start and the end, not copied from it.",
+    "The engine's vocabulary is retention-shaped (six metrics, a reminder dial, price and attribution in the endgame), so this case is a different company, journey and world inside it, not a different kind of problem.",
+    "Run a trademark search on the company name before any public use."
+  ],
+  "schema_version": "0.1",
+  "id": "learning_in_the_middle",
+  "title": "The Quiet Middle: getting learners through the programme",
+  "version": "0.1.0",
+  "stages": [{ "id": "during_programme", "label": "During the programme" }, { "id": "after_completion", "label": "After completion" }],
+  "meta": {
+    "domain": "product",
+    "audience": ["pm-aspirant", "apm", "product-student"],
+    "est_minutes": 40,
+    "locale": "en-IN",
+    "inspiration": "A completion case for a B2B learning platform: learners are enrolled by their companies, work to a hard deadline, and the activity bunches at the start and the end.",
+    "rights_note": "Original scenario. No text, company names or numbers are taken from the source casebook."
+  },
+
+  "company": {
+    "name": "Quillfield Learning",
+    "one_liner": "An Indian B2B skills-training platform used by 190 companies, with 420,000 enrolled learners.",
+    "stage": "Series B, with most revenue from annual company licences",
+    "market": "India, enterprise buyers, a mixed white-collar workforce",
+    "business_model": "Companies buy seats for a programme. Their people learn on the platform as part of the job, at no charge to them.",
+    "product": "The learner app: batches, video lessons, live sessions, tests and certificates.",
+    "brief": "You are the product manager for the learner app. Companies renew when their people finish what they are enrolled in, and right now too few do. Learners join a batch with a hard sixteen-week deadline, and nearly all the activity falls in the first fortnight and the last. Leadership wants more learners coming back through the middle of the programme, and wants those who finish to start another course. You have four cycles of four weeks, one programme term. Nobody has told you why the middle goes quiet.",
+    "stakeholders": [
+      { "id": "meera_iyer", "name": "Meera Iyer", "role": "CEO", "stance": "Wants a leaderboard in every batch because two clients have asked for one." },
+      { "id": "rohan_desai", "name": "Rohan Desai", "role": "Chief Product Officer, your manager", "stance": "Wants evidence before the roadmap changes. Reads your update at the end of every cycle." },
+      { "id": "tara_joseph", "name": "Tara Joseph", "role": "Head of Engineering", "stance": "Says nothing adaptive can be built until lessons are tracked properly." },
+      { "id": "kabir_anand", "name": "Kabir Anand", "role": "Head of Customer Success", "stance": "Hears from training managers every week and wants more reminders sent. His team owns the mute rate." }
+    ]
+  },
+
+  "timeline": {
+    "cycles": 4,
+    "cycle_weeks": 4,
+    "cycle_briefs": [
+      { "n": 1, "title": "Find out why the middle goes quiet", "brief": "You have a completion target and no diagnosis. Decide what to ask, what to measure and what to look at before you build anything." },
+      { "n": 2, "title": "Build what the evidence supports", "brief": "You know more than you did. Commit capacity to the bets you can defend, and say what you expect to happen." },
+      { "n": 3, "title": "The middle of the term", "brief": "Something outside the product changes just as the quiet weeks begin. How much it costs depends on what you put in place earlier." },
+      { "n": 4, "title": "Pay for it, or prove it", "brief": "Leadership wants a pricing call on the learner side. The numbers you collected decide whether your answer holds up." }
+    ]
+  },
+
+  "segments": [
+    {
+      "id": "deadline_driven",
+      "name": "Deadline-driven learners",
+      "share": 0.50,
+      "description": "Enrolled by their manager. They log in when a deadline is close and rarely otherwise, then try to catch up in long sittings.",
+      "baseline": { "weekly_sessions": 0.9, "session_seconds": 1100, "return_30d": 0.22, "notif_opt_out": 0.30 }
+    },
+    {
+      "id": "steady_learners",
+      "name": "Steady learners",
+      "share": 0.30,
+      "description": "Pace themselves through the term. They are not the problem, and they are most of what clients see.",
+      "baseline": { "weekly_sessions": 2.4, "session_seconds": 900, "return_30d": 0.70, "notif_opt_out": 0.12 }
+    },
+    {
+      "id": "completers",
+      "name": "Completers",
+      "share": 0.20,
+      "description": "Finished a course in the last two months. Most do not open the app again until the next enrolment.",
+      "baseline": { "weekly_sessions": 0.2, "session_seconds": 400, "return_30d": 0.06, "notif_opt_out": 0.22 }
+    }
+  ],
+
+  "metrics": [
+    { "id": "return_30d", "label": "Four-week return rate", "unit": "share of learners", "kind": "outcome", "definition": "Share of enrolled learners who open a lesson at least once in a four-week stretch.", "visible_from_instrumentation": 0, "noise_scale": 0.3 },
+    { "id": "weekly_sessions", "label": "Learning sessions per learner per week", "unit": "sessions", "kind": "input", "definition": "Average learning sessions per learner per week.", "visible_from_instrumentation": 0 },
+    { "id": "session_seconds", "label": "Median session length", "unit": "seconds", "kind": "input", "definition": "Median time in a learning session. Needs lesson-level tracking to measure.", "visible_from_instrumentation": 1 },
+    { "id": "mau", "label": "Active learner accounts", "unit": "users", "kind": "vanity", "definition": "Distinct learner accounts that logged in during the last 30 days. It moves with how many seats clients buy as much as with the product.", "visible_from_instrumentation": 0 },
+    { "id": "notif_opt_out", "label": "Reminder mute rate", "unit": "share of learners", "kind": "guardrail", "definition": "Share of learners who have muted reminders.", "visible_from_instrumentation": 0 },
+    { "id": "post_placement_engagement", "label": "Next-course starts", "unit": "share of completers", "kind": "outcome", "definition": "Share of completers who start another course within two months.", "visible_from_instrumentation": 1 }
+  ],
+
+  "capacity": { "eng_sprints_per_cycle": 8, "clarify_tokens": 6, "experiment_slots_per_cycle": 2, "experiment_slots_final_cycle": 3 },
+
+  "case_facts": {
+    "tracking": [
+      { "id": "none", "weight": 0.6, "instrumentation_level": 0 },
+      { "id": "sessions", "weight": 0.4, "instrumentation_level": 1 }
+    ],
+    "backing": [
+      { "id": "any", "weight": 0.1, "max_bets": 5 },
+      { "id": "one", "weight": 0.3, "max_bets": 1 },
+      { "id": "two", "weight": 0.4, "max_bets": 2 },
+      { "id": "three", "weight": 0.2, "max_bets": 3 }
+    ],
+    "scope": [
+      { "id": "both", "weight": 0.5, "stages": ["during_programme", "after_completion"] },
+      { "id": "during_programme", "weight": 0.25, "stages": ["during_programme"] },
+      { "id": "after_completion", "weight": 0.25, "stages": ["after_completion"] }
+    ]
+  },
+
+  "engine": {
+    "ramp_first_live_cycle": 0.5,
+    "return_30d_cap": 0.9,
+    "opt_out_cap": 0.95,
+    "opt_out_persistence": 0.7,
+    "opt_out_return_penalty": 1.5,
+    "notif_return_per_session_lift": 0.5,
+    "notification_baseline": { "volume": { "deadline_driven": 2, "steady_learners": 1, "completers": 0.5 }, "targeting": "broadcast" },
+    "event_persistence": [1.0, 0.5],
+    "event_max_mitigation": 0.9,
+    "population": 420000,
+    "mau_sessions_elasticity": 0.4,
+    "mau_wobble_sd": 0.03,
+    "post_placement_segment": "completers",
+    "post_placement_engagement_per_return": 0.55,
+    "movement_thresholds": { "flat_below": 0.03, "small_below": 0.12 },
+    "test_ship_threshold": 0.03,
+    "test_kill_threshold": 0.01,
+    "guardrail_breach_abs": 0.02,
+    "quality_scaled_levers": { "microlessons": "lesson_cut_quality" },
+    "test_reveals": { "reminder_policy": ["notif_fatigue_ceiling"], "batch_leaderboard": ["batch_activation"], "addon_offer": ["price_sensitivity"], "completion_fee_offer": ["attribution_gap"] },
+    "variation": {
+      "effect_sd": 0.45,
+      "hidden": {
+        "notif_fatigue_ceiling": { "sd": 0.25, "min_multiple_of_baseline_volume": 1.25 },
+        "attribution_gap": { "sd": 0.45, "min": 0.12, "max": 0.85 },
+        "price_sensitivity": { "sd": 0.6 }
+      }
+    },
+    "reveal": { "noisy_sd": 0.35, "directional_sd": 0.2, "bucket_ratio": 1.33 }
+  },
+
+  "levers": [
+    {
+      "id": "lesson_tracking", "name": "Lesson-level tracking", "kind": "foundation", "category": "measurement",
+      "stages": ["during_programme", "after_completion"], "cost_sprints": 2, "lead_cycles": 0, "available_from_cycle": 1,
+      "params": { "sets_instrumentation_level": 1 },
+      "description": "Record which lessons people open, how far they get and where they stop, not just that they logged in. Switched on at the start of the cycle, so the data is there by the end of it.",
+      "player_prior": "Unglamorous but cheap. Nothing a learner sees changes.",
+      "risk": "Pays off only if someone looks at the data."
+    },
+    {
+      "id": "learning_pipeline", "name": "Learning data pipeline", "kind": "foundation", "category": "measurement",
+      "stages": ["during_programme", "after_completion"], "cost_sprints": 3, "lead_cycles": 1, "available_from_cycle": 1,
+      "requires": { "levers": ["lesson_tracking"] },
+      "params": { "sets_instrumentation_level": 2 },
+      "description": "A proper pipeline: per-learner history, clean cohort readouts and the base for reminders that adapt.",
+      "player_prior": "Engineering says anything adaptive needs this.",
+      "risk": "Three sprints that no learner will ever see."
+    },
+    {
+      "id": "learner_interviews", "name": "Learner interviews", "kind": "research", "category": "research",
+      "stages": ["during_programme", "after_completion"], "cost_sprints": 1, "lead_cycles": 0, "available_from_cycle": 1,
+      "params": { "covers_segments": "all" },
+      "reveals_hidden": ["segment_response", "price_sensitivity"],
+      "description": "Talk to a sample from each segment about when they study and why they stop.",
+      "player_prior": "Qualitative. Good for the why, weak for the how much.",
+      "risk": "Small samples can mislead."
+    },
+    {
+      "id": "watch_pattern_review", "name": "Lesson-watch review", "kind": "research", "category": "research",
+      "stages": ["during_programme", "after_completion"], "cost_sprints": 1, "lead_cycles": 0, "available_from_cycle": 1,
+      "requires": { "instrumentation_level": 1 },
+      "reveals_hidden": ["deadline_pull"],
+      "description": "Analyse when learners actually open lessons across the term.",
+      "player_prior": "Only possible once lesson-level events are being tracked.",
+      "risk": "You may find something you did not plan for."
+    },
+    {
+      "id": "completer_survey", "name": "Completer survey", "kind": "research", "category": "research",
+      "stages": ["after_completion"], "cost_sprints": 1, "lead_cycles": 0, "available_from_cycle": 1,
+      "params": { "covers_segments": ["completers"] },
+      "reveals_hidden": ["segment_response", "attribution_gap", "price_sensitivity"],
+      "description": "Ask people who just finished why they stopped coming, what they would pay for, and whether they would have finished anyway.",
+      "player_prior": "Cheap and fast, but only covers one segment.",
+      "risk": "Self-reported answers are generous."
+    },
+    {
+      "id": "weekly_goals", "name": "Weekly goals and check-ins", "kind": "build", "category": "use_case",
+      "stages": ["during_programme"], "cost_sprints": 3, "lead_cycles": 1, "available_from_cycle": 1,
+      "effects": {
+        "deadline_driven": { "weekly_sessions_rel": 0.25, "return_30d_rel": 0.14 },
+        "steady_learners": { "weekly_sessions_rel": 0.03, "return_30d_rel": 0.01 }
+      },
+      "description": "Each learner sets a small target for the week and gets a short check-in when they meet it or miss it.",
+      "player_prior": "Teams usually see more return visits from people who otherwise wait for the deadline.",
+      "risk": "Does nothing for people who are already on pace."
+    },
+    {
+      "id": "microlessons", "name": "Five-minute lessons", "kind": "build", "category": "intensity",
+      "stages": ["during_programme", "after_completion"], "cost_sprints": 4, "lead_cycles": 1, "available_from_cycle": 1,
+      "requires": { "instrumentation_level": 1 },
+      "effects": {
+        "deadline_driven": { "weekly_sessions_rel": 0.30, "session_seconds_rel": -0.35, "return_30d_rel": 0.15 },
+        "steady_learners": { "weekly_sessions_rel": 0.08, "session_seconds_rel": -0.20, "return_30d_rel": 0.02 },
+        "completers": { "weekly_sessions_rel": 0.10, "session_seconds_rel": -0.30, "return_30d_rel": 0.08 }
+      },
+      "description": "Cut long videos into short lessons that fit into a gap in the working day.",
+      "player_prior": "Short lessons suit short attention. How well they can be cut depends on how much you know about where people stop.",
+      "risk": "A bad cut is worse than the long video."
+    },
+    {
+      "id": "batch_leaderboard", "name": "Batch leaderboard and badges", "kind": "build", "category": "use_case",
+      "stages": ["during_programme", "after_completion"], "cost_sprints": 4, "lead_cycles": 1, "available_from_cycle": 1,
+      "soft_requires": { "levers": ["weekly_goals"], "else_multiplier": 0.25 },
+      "effects": {
+        "deadline_driven": { "weekly_sessions_rel": 0.10, "session_seconds_rel": 0.10, "return_30d_rel": 0.10 },
+        "steady_learners": { "weekly_sessions_rel": 0.12, "session_seconds_rel": 0.05, "return_30d_rel": 0.03 },
+        "completers": { "weekly_sessions_rel": 0.04, "return_30d_rel": 0.06 }
+      },
+      "description": "A weekly ranking inside each batch, with badges that learners can share.",
+      "player_prior": "Social features are often described as step changes in engagement.",
+      "risk": "A ranking of people who are not doing anything feels worse than no ranking."
+    },
+    {
+      "id": "manager_digest", "name": "Manager progress digest", "kind": "build", "category": "use_case",
+      "stages": ["during_programme"], "cost_sprints": 3, "lead_cycles": 1, "available_from_cycle": 1,
+      "effects": {
+        "deadline_driven": { "weekly_sessions_rel": 0.18, "return_30d_rel": 0.16 },
+        "steady_learners": { "return_30d_rel": 0.01 }
+      },
+      "description": "A weekly summary to each training manager of who is on pace in their batch and who is not.",
+      "player_prior": "Learners who know their manager can see their progress tend to show up.",
+      "risk": "Some learners will feel watched."
+    },
+    {
+      "id": "next_course_paths", "name": "Next-course pathways", "kind": "build", "category": "use_case",
+      "stages": ["after_completion"], "cost_sprints": 3, "lead_cycles": 1, "available_from_cycle": 1,
+      "effects": {
+        "completers": { "weekly_sessions_rel": 0.20, "session_seconds_rel": 0.50, "return_30d_rel": 0.25 },
+        "deadline_driven": { "weekly_sessions_rel": 0.02, "session_seconds_rel": 0.05, "return_30d_rel": 0.03 },
+        "steady_learners": { "weekly_sessions_rel": 0.03, "session_seconds_rel": 0.10, "return_30d_rel": 0.05 }
+      },
+      "description": "Suggest the next course, with the client's approval flow built in, as soon as someone finishes.",
+      "player_prior": "People who just finished are the easiest to point at something else.",
+      "risk": "A recommendation nobody asked for is noise."
+    },
+    {
+      "id": "lesson_notes", "name": "Notes and discussion under each lesson", "kind": "build", "category": "intensity",
+      "stages": ["during_programme", "after_completion"], "cost_sprints": 2, "lead_cycles": 0, "available_from_cycle": 2,
+      "requires": { "levers": ["microlessons"] },
+      "effects": {
+        "deadline_driven": { "session_seconds_rel": 0.20, "return_30d_rel": 0.04 },
+        "steady_learners": { "session_seconds_rel": 0.25, "return_30d_rel": 0.04 },
+        "completers": { "session_seconds_rel": 0.20, "return_30d_rel": 0.05 }
+      },
+      "description": "Let learners take notes and discuss under each lesson.",
+      "player_prior": "Interaction deepens a session once there are short lessons to interact with.",
+      "risk": "Needs lessons worth discussing."
+    },
+    {
+      "id": "reminder_policy", "name": "Reminder policy", "kind": "dial", "category": "frequency",
+      "stages": ["during_programme", "after_completion"], "cost_sprints": 1, "lead_cycles": 0, "available_from_cycle": 1,
+      "params": {
+        "volume_per_week_range": [0, 10],
+        "targeting_options": ["broadcast", "rules", "preference_model"],
+        "model": {
+          "gain_weekly_sessions_rel_per_vol_pow_0_6": { "deadline_driven": 0.12, "steady_learners": 0.04, "completers": 0.02 },
+          "targeting_multiplier": { "broadcast": 0.6, "rules": 1.0, "preference_model": 1.5 },
+          "opt_out_abs_per_notification_over_ceiling": 0.03
+        }
+      },
+      "reveals_hidden": [],
+      "description": "Set how many reminders each segment gets per week, and how they are targeted.",
+      "player_prior": "More reminders mean more logins, up to a point nobody has measured.",
+      "risk": "Fatigue shows up as muted reminders, and the damage lasts."
+    },
+    {
+      "id": "adaptive_reminders", "name": "Adaptive reminders", "kind": "foundation", "category": "frequency",
+      "stages": ["during_programme", "after_completion"], "cost_sprints": 3, "lead_cycles": 1, "available_from_cycle": 2,
+      "requires": { "instrumentation_level": 2 },
+      "params": { "unlocks_targeting": "preference_model", "needs_consent_flow": true },
+      "description": "Time each reminder to when that learner actually studies and what they last did.",
+      "player_prior": "Timing makes each reminder worth more. It needs data and consent.",
+      "risk": "A weak model is no better than a broadcast."
+    },
+    {
+      "id": "ab_test", "name": "A/B test", "kind": "experiment", "category": "research",
+      "stages": ["during_programme", "after_completion"], "cost_sprints": 0.5, "lead_cycles": 0, "available_from_cycle": 1,
+      "params": { "sample_pct_range": [5, 50], "weeks_range": [1, 4] , "tests_any_live_or_pending_lever": true },
+      "reveals_hidden": ["notif_fatigue_ceiling", "batch_activation", "price_sensitivity", "attribution_gap"],
+      "description": "Test one lever on one segment before you roll it out. You choose the sample and the duration.",
+      "player_prior": "Small samples and short tests give noisy answers.",
+      "risk": "Stopping early because the number looks good is how teams fool themselves."
+    },
+    {
+      "id": "addon_offer", "name": "Pricing test: learner add-on", "kind": "offer", "category": "research",
+      "stages": ["during_programme", "after_completion"], "cost_sprints": 0, "lead_cycles": 0, "available_from_cycle": 1,
+      "description": "Show a sample of one segment the paid add-on at its planned price and count who would sign up. You choose the sample and the duration, as with any test. The test costs what an A/B test costs and uses one of its slots.",
+      "player_prior": "People say they would pay more often than they do, but a real offer shown to a real sample is the nearest thing to an answer.",
+      "risk": "A short test on a small sample is mostly noise, and it only tells you about the segment you showed it to."
+    },
+    {
+      "id": "completion_fee_offer", "name": "Pricing test: per-completion fee", "kind": "offer", "category": "research",
+      "stages": ["during_programme", "after_completion"], "cost_sprints": 0, "lead_cycles": 0, "available_from_cycle": 1,
+      "description": "Offer a sample of clients a fee for each completion and see how many completions they will credit to Quillfield. The test costs what an A/B test costs and uses one of its slots.",
+      "player_prior": "A client only pays for completions it believes were yours.",
+      "risk": "A short test on a small sample is mostly noise."
+    },
+    {
+      "id": "cohort_holdout", "name": "Cohort holdout", "kind": "holdout", "category": "research",
+      "stages": ["during_programme", "after_completion"], "cost_sprints": 0, "lead_cycles": 0, "available_from_cycle": 1,
+      "description": "Keep a sample of learners off everything shipped this term for the test's duration, and read the four-week return of that cohort and of everyone else. It covers every learner, so the segment you name does not matter. You choose the sample and the duration, as with any test. The test costs what an A/B test costs and uses one of its slots.",
+      "player_prior": "The gap between the two cohorts is what your work did. The number for everyone else is what the learner base now returns, market included, and that is what a renewal is worth to a client.",
+      "risk": "A small holdout reads the withheld cohort noisily. A large one leaves the rest of the learners less to read, and in practice withholds more people from what you built."
+    }
+  ],
+
+  "hidden_variables": [
+    {
+      "id": "deadline_pull",
+      "player": { "label": "How learners spread their effort" },
+      "description": "The real reason the middle goes quiet: learners treat the final deadline as the only deadline, so effort bunches at the start and the end.",
+      "truth": { "share_of_activity_in_first_and_last_fortnight": 0.72, "median_days_between_visits_mid_programme": 19 },
+      "reveal": { "via": [{ "kind": "lever", "ref": "watch_pattern_review" }], "fidelity": "exact", "after_cycles": 0 }
+    },
+    {
+      "id": "segment_response",
+      "player": { "label": "What each segment responds to" },
+      "description": "What each segment actually responds to: the return lift every lever gives it. Derived from the world's own lever effects, so it always agrees with them.",
+      "truth": { "derived_from": "lever_effects" },
+      "reveal": { "via": [{ "kind": "lever", "ref": "learner_interviews", "fidelity": "directional" }, { "kind": "lever", "ref": "completer_survey", "fidelity": "noisy" }], "fidelity": "directional", "after_cycles": 0 }
+    },
+    {
+      "id": "notif_fatigue_ceiling",
+      "player": { "label": "Weekly reminders before learners mute them" },
+      "description": "Weekly reminders per learner beyond which mutes climb.",
+      "truth": { "deadline_driven": 4, "steady_learners": 2.2, "completers": 1 },
+      "reveal": { "via": [{ "kind": "lever", "ref": "ab_test", "fidelity": "noisy" }, { "kind": "clarify", "ref": "reminder_constraints", "fidelity": "directional" }], "fidelity": "noisy", "after_cycles": 0 }
+    },
+    {
+      "id": "attribution_gap",
+      "player": { "label": "Completions a client will not credit to Quillfield", "percent": true },
+      "description": "Share of completions that a client will not credit to Quillfield, because it believes the learner would have finished anyway.",
+      "truth": 0.4,
+      "reveal": { "via": [{ "kind": "lever", "ref": "completer_survey", "fidelity": "noisy" }, { "kind": "clarify", "ref": "pricing_plans", "fidelity": "directional" }, { "kind": "lever", "ref": "ab_test", "fidelity": "noisy" }], "fidelity": "directional", "after_cycles": 0 }
+    },
+    {
+      "id": "price_sensitivity",
+      "player": { "label": "Share who would buy the learner add-on", "percent": true },
+      "description": "Share of each segment that would buy a paid add-on at a realistic price.",
+      "truth": { "deadline_driven": 0.005, "steady_learners": 0.022, "completers": 0.014 },
+      "reveal": { "via": [{ "kind": "lever", "ref": "learner_interviews", "fidelity": "noisy" }, { "kind": "lever", "ref": "completer_survey", "fidelity": "noisy" }, { "kind": "clarify", "ref": "pricing_plans", "fidelity": "directional" }, { "kind": "lever", "ref": "ab_test", "fidelity": "noisy" }], "fidelity": "directional", "after_cycles": 0 }
+    },
+    {
+      "id": "lesson_cut_quality",
+      "player": { "label": "How well lessons can be cut at each level of tracking" },
+      "description": "How good the short lessons are at each instrumentation level; scales their true effect.",
+      "truth": { "0": 0.4, "1": 0.65, "2": 0.9, "3": 1.0 },
+      "reveal": { "via": [], "fidelity": "none", "after_cycles": 2 }
+    },
+    {
+      "id": "batch_activation",
+      "player": { "label": "What a batch leaderboard needs to work" },
+      "description": "A leaderboard only works once learners are already setting and meeting their own targets.",
+      "truth": { "needs_lever": "weekly_goals", "multiplier_without": 0.25 },
+      "reveal": { "via": [{ "kind": "lever", "ref": "ab_test" }], "fidelity": "noisy", "after_cycles": 0 }
+    }
+  ],
+
+  "measurement": {
+    "instrumentation_levels": [
+      { "level": 0, "label": "Logins and enrolments only", "noise_sd": 0.30 },
+      { "level": 1, "label": "Lesson-level events", "noise_sd": 0.15 },
+      { "level": 2, "label": "Learning data pipeline", "noise_sd": 0.08 }
+    ],
+    "experiment": { "base_noise_sd": 0.12, "min_weeks": 2, "min_sample_pct": 10, "peek_penalty_sd": 0.08 }
+  },
+
+  "clarify": {
+    "questions": [
+      { "id": "why_completion", "text": "Why does completion matter to the business right now?", "relevance": "high", "answer": { "by": "threat", "cases": {
+        "rival_bundle": { "text": "Clients renew when their people finish, and a learner who finishes and never returns is gone until the next enrolment. The target is a higher four-week return rate through the term. Rohan's main worry this quarter is what the rivals are planning for the people who finish.", "learns": { "watch": "rival_moves" } },
+        "budget_freeze": { "text": "Clients renew when their people finish, and a learner who finishes and never returns is gone until the next enrolment. The target is a higher four-week return rate through the term. Rohan's main worry this quarter is what is happening to clients' training budgets.", "learns": { "watch": "client_budgets" } },
+        "reminder_outage": { "text": "Clients renew when their people finish, and a learner who finishes and never returns is gone until the next enrolment. The target is a higher four-week return rate through the term. Rohan's main worry this quarter is how reliable the reminder provider is.", "learns": { "watch": "reminder_provider" } }
+      } } },
+      { "id": "focus_learners", "text": "Which learners are we talking about?", "relevance": "high", "answer": { "by": "scope", "cases": {
+        "both": { "text": "Learners enrolled by their companies: those still working through a programme, and those who finished in the last two months. We are not chasing individual sign-ups.", "learns": { "scope": "both" } },
+        "during_programme": { "text": "Learners who are still working through a programme. What happens after someone finishes belongs to the account team this quarter, so keep out of it.", "learns": { "scope": "during_programme" } },
+        "after_completion": { "text": "Learners who finished in the last two months. The experience inside a programme belongs to the content team this quarter, so keep out of it.", "learns": { "scope": "after_completion" } }
+      } } },
+      { "id": "define_completion", "text": "How do we define completion and a returning learner?", "relevance": "high", "answer": "Completion is finishing the programme by its deadline. For the product team, a learner returns in a four-week stretch if they open a lesson at least once. For someone who has finished, returning means starting another course within two months." },
+      { "id": "programme_length", "text": "How long is a programme, and what is the deadline?", "relevance": "medium", "answer": "Sixteen weeks, with a hard deadline set by the client. Leadership reviews at the end of your fourth cycle." },
+      { "id": "consumer_scope", "text": "Are individual learners who pay for themselves in scope?", "relevance": "medium", "answer": "No. Company-enrolled learners only." },
+      { "id": "current_data", "text": "What do we know today about what learners do inside a lesson?", "relevance": "high", "answer": { "by": "tracking", "cases": {
+        "none": { "text": "Very little. We log logins and enrolments. We cannot see which lessons are opened or where people stop.", "learns": { "tracking": "none" } },
+        "sessions": { "text": "More than you would think. Lesson events have been logged for a year, though nobody has analysed them.", "learns": { "tracking": "sessions" } }
+      } } },
+      { "id": "eng_capacity", "text": "How much engineering capacity do I have, and how many bets will leadership back?", "relevance": "high", "answer": { "by": "backing", "cases": {
+        "any": { "text": "Whatever the planning screen shows each cycle. It is shared across everything you choose: tracking, research, builds, the reminder dial and each test. Leadership has not capped how many bets you run.", "learns": { "bets": "5" } },
+        "one": { "text": "Whatever the planning screen shows each cycle. It is shared across everything you choose: tracking, research, builds, the reminder dial and each test. Leadership will back one bet this term. A build you start after the first is held at the review and does not ship.", "learns": { "bets": "1" } },
+        "two": { "text": "Whatever the planning screen shows each cycle. It is shared across everything you choose: tracking, research, builds, the reminder dial and each test. Leadership will back two bets this term. A build you start after the first two is held at the review and does not ship.", "learns": { "bets": "2" } },
+        "three": { "text": "Whatever the planning screen shows each cycle. It is shared across everything you choose: tracking, research, builds, the reminder dial and each test. Leadership will back three bets this term. A build you start after the first three is held at the review and does not ship.", "learns": { "bets": "3" } }
+      } } },
+      { "id": "reminder_constraints", "text": "Are there limits on reminders or personalisation?", "relevance": "high", "answer": "About one learner in four has already muted reminders from their company's learning portal. Anything that adapts to the learner needs a consent step.", "reveals": ["notif_fatigue_ceiling"] },
+      { "id": "rival_moves", "text": "What are competitors doing?", "relevance": "medium", "signal_for": ["rival_bundle"], "answer": { "by": "threat", "cases": {
+        "rival_bundle": { "text": "A rival has just announced free recognised certificates for anyone who finishes a course with them, starting next month. Nobody has solved what happens after completion, and they mean to.", "learns": { "threat": "rival_bundle" } },
+        "budget_freeze": { "text": "Two rivals sell similar programmes. One has started adding live cohorts. Nothing new is planned." },
+        "reminder_outage": { "text": "Two rivals sell similar programmes. One has started adding live cohorts. Nothing new is planned." }
+      } } },
+      { "id": "client_budgets", "text": "What is happening to clients' training budgets?", "relevance": "medium", "signal_for": ["budget_freeze"], "answer": { "by": "threat", "cases": {
+        "rival_bundle": { "text": "Steady. Nothing unusual for the season." },
+        "budget_freeze": { "text": "Several large clients are freezing discretionary spend. New enrolments are expected to pause within weeks, and managers will have less appetite to chase their people.", "learns": { "threat": "budget_freeze" } },
+        "reminder_outage": { "text": "Steady. Nothing unusual for the season." }
+      } } },
+      { "id": "reminder_provider", "text": "How reliable is our reminder provider?", "relevance": "medium", "signal_for": ["reminder_outage"], "answer": { "by": "threat", "cases": {
+        "rival_bundle": { "text": "No incidents in the last year." },
+        "budget_freeze": { "text": "No incidents in the last year." },
+        "reminder_outage": { "text": "Two incidents this term, and a third is likely. When it misfires, learners who are near their limit mute reminders.", "learns": { "threat": "reminder_outage" } }
+      } } },
+      { "id": "pricing_plans", "text": "Is leadership considering charging for anything new?", "relevance": "medium", "answer": "It is open and will be decided at the end. Clients are price sensitive, and a client will not always agree that a learner finished because of us.", "reveals": ["attribution_gap", "price_sensitivity"] },
+      { "id": "ceo_favourite", "text": "Is there a feature leadership already likes?", "relevance": "medium", "answer": "Meera wants a leaderboard in every batch because two clients asked for one. That is a request, not a finding.", "bias_trap": true },
+      { "id": "office_count", "text": "In how many cities do our learners work?", "relevance": "low", "answer": "Mostly six metros. It does not change the problem." }
+    ]
+  },
+
+  "reflection": {
+    "prompts": [
+      {
+        "id": "root_cause", "text": "What do you believe is the main reason learners go quiet in the middle of a programme?", "kind": "single_choice",
+        "options": [
+          { "id": "no_social_pull", "label": "Learning alone is not rewarding enough" },
+          { "id": "reminders_too_few", "label": "We do not remind people often enough" },
+          { "id": "deadline_pull", "label": "They only move when a deadline is close" },
+          { "id": "lessons_too_long", "label": "The lessons are too long for a working day" },
+          { "id": "wrong_courses", "label": "People are enrolled in courses they do not want" },
+          { "id": "need_more_data", "label": "I do not know yet and need more data" }
+        ],
+        "truth": { "hidden_variable": "deadline_pull", "correct": ["deadline_pull"], "acceptable_until_cycle": { "need_more_data": 1 } }
+      },
+      { "id": "funded", "text": "What did you fund this cycle?", "kind": "multi_choice", "truth": { "source": "decisions" } },
+      { "id": "sacrificed", "text": "What did you deliberately choose not to fund?", "kind": "multi_choice", "truth": { "source": "unfunded_levers" } },
+      {
+        "id": "primary_metric", "text": "Which metric will tell you whether this worked?", "kind": "single_choice",
+        "options": [
+          { "id": "return_30d", "label": "Four-week return rate" },
+          { "id": "weekly_sessions", "label": "Learning sessions per learner per week" },
+          { "id": "session_seconds", "label": "Median session length" },
+          { "id": "mau", "label": "Active learner accounts" },
+          { "id": "post_placement_engagement", "label": "Next-course starts" }
+        ],
+        "truth": { "correct": ["return_30d"], "acceptable": ["post_placement_engagement", "session_seconds"], "trap": ["mau"] }
+      },
+      {
+        "id": "guardrail_metric", "text": "Which metric must not get worse while you chase it?", "kind": "single_choice",
+        "options": [
+          { "id": "notif_opt_out", "label": "Reminder mute rate" },
+          { "id": "weekly_sessions", "label": "Learning sessions per learner per week" },
+          { "id": "none", "label": "None" }
+        ],
+        "truth": { "correct": ["notif_opt_out"] }
+      },
+      {
+        "id": "expected_movement", "text": "What do you expect the four-week return rate to do this cycle?", "kind": "scale",
+        "options": [
+          { "id": "down", "label": "Fall" },
+          { "id": "flat", "label": "Stay flat" },
+          { "id": "up_small", "label": "Rise a little" },
+          { "id": "up_large", "label": "Rise a lot" }
+        ],
+        "truth": { "rule": "compare_to_actual_return_30d_change", "tolerance": 0.2 }
+      }
+    ]
+  },
+
+  "events": {
+    "selection": "seeded",
+    "cycle": 3,
+    "pool": [
+      {
+        "id": "rival_bundle", "name": "A rival gives completers a free certificate", "weight": 0.40,
+        "signal": "Next-course starts among recent completers have dipped, and a rival has announced free recognised certificates for anyone who finishes with them.",
+        "body": "A competitor is giving away recognised certificates to everyone it trains. Your completers have a new reason to take their next course somewhere else.",
+        "effects": { "completers": { "return_30d_rel": -0.30, "weekly_sessions_rel": -0.15 }, "steady_learners": { "return_30d_rel": -0.04 } },
+        "mitigations": [
+          { "when": { "fn": "lever_live", "params": { "lever": "next_course_paths" } }, "factor": 0.60 },
+          { "when": { "fn": "research_done", "params": { "lever": "completer_survey" } }, "factor": 0.20 }
+        ]
+      },
+      {
+        "id": "budget_freeze", "name": "Clients freeze training budgets", "weight": 0.35,
+        "signal": "Several clients have paused new enrolments, and managers are asking whether their people can drop out early.",
+        "body": "Training budgets are being cut. Learners who are still in a programme lose the push from the manager that gets them to log in.",
+        "effects": { "deadline_driven": { "weekly_sessions_rel": -0.15, "return_30d_rel": -0.10 }, "steady_learners": { "weekly_sessions_rel": -0.05 } },
+        "mitigations": [
+          { "when": { "fn": "lever_live", "params": { "lever": "manager_digest" } }, "factor": 0.40 },
+          { "when": { "fn": "lever_live", "params": { "lever": "weekly_goals" } }, "factor": 0.30 }
+        ]
+      },
+      {
+        "id": "reminder_outage", "name": "A reminder provider fault", "weight": 0.25,
+        "signal": "Mute rates spiked overnight and support tickets mention duplicate reminders.",
+        "body": "Your reminder provider sent duplicates for two days. Learners who were already near their limit muted reminders.",
+        "effects": { "deadline_driven": { "notif_opt_out_abs": 0.06 }, "steady_learners": { "notif_opt_out_abs": 0.06 }, "completers": { "notif_opt_out_abs": 0.06 } },
+        "mitigations": [
+          { "when": { "fn": "notif_volume_at_most_share_of_ceiling", "params": { "share": 0.5 } }, "factor": 0.70 }
+        ]
+      }
+    ]
+  },
+
+  "rubric": {
+    "level_factors": { "full": 1.0, "part": 0.5, "none": 0.0 },
+    "bands": [
+      { "min": 90, "label": "Exceptional" },
+      { "min": 75, "label": "Strong" },
+      { "min": 60, "label": "Competent" },
+      { "min": 40, "label": "Weak" },
+      { "min": 0, "label": "Poor" }
+    ],
+    "traits": [
+      {
+        "id": "problem_framing", "name": "Problem framing", "weight": 15,
+        "subcriteria": [
+          {
+            "id": "asked_what_mattered", "label": "Asked the questions that mattered",
+            "rule": { "fn": "clarify_quality", "params": { "full": { "high_min": 4, "low_max": 1 }, "part": { "high_min": 2 } } },
+            "evidence": { "full": "Asked {high_asked} of {high_total} core questions and the one this term's worry pointed to, and {low_asked} that did not matter.", "part": "Asked {high_asked} of {high_total} questions that mattered.", "none": "Asked {high_asked} of {high_total} questions that mattered before committing." }
+          },
+          {
+            "id": "metric_before_build", "label": "Defined success before building",
+            "rule": { "fn": "metric_defined_before_build", "params": { "by_cycle": 1 } },
+            "backed_by": { "any_of": [{ "clarify": "define_completion" }, { "clarify": "why_completion" }], "missing": "Named a primary metric before building, but had not yet asked what a returning learner is or why completion matters." },
+            "evidence": { "full": "Named a primary metric in cycle {cycle} before committing build capacity.", "part": "Named a primary metric, but only after committing capacity.", "none": "Built without naming how success would be measured." }
+          },
+          {
+            "id": "scope_declared", "label": "Chose a segment to focus on",
+            "rule": { "fn": "scope_declared", "params": { "by_cycle": 1 } },
+            "backed_by": { "any_of": [{ "reading": "segment_response" }], "missing": "Declared a focus segment up front, but no interview or survey had yet shown which learners respond." },
+            "evidence": { "full": "Declared a focus segment ({segment}) up front.", "part": "Focused on a segment, but not until cycle {cycle}.", "none": "Never narrowed the problem to a segment." }
+          },
+          {
+            "id": "diagnosis_correct", "label": "Diagnosed the real cause",
+            "rule": { "fn": "root_cause_diagnosis", "params": {} },
+            "evidence": { "full": "Named '{choice}' as the cause, and the evidence in hand supports it.", "part": "Named '{choice}', which is {why}.", "none": "Named '{choice}', which the evidence does not support." }
+          }
+        ]
+      },
+      {
+        "id": "user_empathy", "name": "User empathy and segmentation", "weight": 15,
+        "subcriteria": [
+          {
+            "id": "listened_first", "label": "Listened to learners before building for them",
+            "rule": { "fn": "research_before_segment_build", "params": { "min_research": 1 } },
+            "evidence": { "full": "All {builds} builds followed research on their segment.", "part": "{researched} of {builds} builds followed research on their segment.", "none": "No build has yet been backed by research on its segment." }
+          },
+          {
+            "id": "levers_fit_segments", "label": "Matched the lever to the segment it works for",
+            "rule": { "fn": "lever_segment_fit", "params": { "top_k": 2, "full_share": 0.6, "part_share": 0.35 } },
+            "evidence": { "full": "{share} of capacity went to levers that move your focus segment most.", "part": "{share} of capacity went to levers that suit your focus segment.", "none": "{share} of capacity went where it moves your focus segment." }
+          },
+          {
+            "id": "whole_journey", "label": "Covered the whole learner journey",
+            "rule": { "fn": "journey_coverage", "params": { "stages": ["during_programme", "after_completion"] } },
+            "evidence": { "full": "Covered every stage this term's brief puts in scope.", "part": "Covered only the {stage} stage.", "none": "No lever reached a stage that was in scope." }
+          }
+        ]
+      },
+      {
+        "id": "prioritisation", "name": "Prioritisation", "weight": 15,
+        "subcriteria": [
+          {
+            "id": "estimates_calibrated", "label": "Estimated reach, impact and effort realistically",
+            "rule": { "fn": "rice_calibration", "params": { "full_rank_corr": 0.5, "part_rank_corr": 0.2 } },
+            "evidence": { "full": "Your impact ranking matched the real ranking (rank correlation {corr}).", "part": "Your impact ranking was partly right (rank correlation {corr}).", "none": "Your impact ranking did not match the real one (rank correlation {corr})." }
+          },
+          {
+            "id": "bets_concentrated", "label": "Concentrated capacity on a few bets",
+            "rule": { "fn": "capacity_concentration", "params": { "max_levers_full": 4, "full_share_top2": 0.5, "max_levers_part": 6 } },
+            "evidence": { "full": "Top two bets took {share} of capacity, within the {limit} bets leadership would back.", "part": "Top two bets took {share} of capacity, spread across {n} levers.", "none": "No concentrated plan: {n} levers funded." }
+          },
+          {
+            "id": "capacity_used", "label": "Used the capacity you had",
+            "rule": { "fn": "capacity_used", "params": { "full": [0.8, 1.0], "part": [0.6, 0.8] } },
+            "evidence": { "full": "Committed {share} of engineering capacity.", "part": "Committed {share} of engineering capacity.", "none": "Committed only {share} of engineering capacity." }
+          },
+          {
+            "id": "spent_where_it_pays", "label": "Spent capacity where it pays most",
+            "rule": { "fn": "delivered_vs_best", "params": { "full": 0.85, "part": 0.5 } },
+            "evidence": { "full": "Your builds deliver {share} of the lift the best set could have, given the {budget} sprints you left for building. The best set was {best}.", "part": "Your builds deliver {share} of the lift the best set could have, given the {budget} sprints you left for building. The best set was {best}.", "none": "Your builds deliver only {share} of the lift the best set could have, given the {budget} sprints you left for building. The best set was {best}." }
+          }
+        ]
+      },
+      {
+        "id": "metrics", "name": "Metrics and measurement", "weight": 15,
+        "subcriteria": [
+          {
+            "id": "primary_and_guardrail", "label": "Pair a primary metric with a guardrail",
+            "rule": { "fn": "primary_plus_guardrail", "params": {} },
+            "backed_by": { "any_of": [{ "reading": "notif_fatigue_ceiling" }], "missing": "Named the right guardrail, but nothing you had asked or tested yet showed that reminders wear learners out." },
+            "evidence": { "full": "Primary: {primary}. Guardrail: {guardrail}.", "part": "Named {primary} but no guardrail.", "none": "No primary metric or guardrail was named." }
+          },
+          {
+            "id": "measure_before_depend", "label": "Instrument before depending on data",
+            "rule": { "fn": "instrumentation_before_dependent", "params": {} },
+            "evidence": { "full": "Lesson-level tracking was in place before anything that depends on it, and you did not pay for what the company already had.", "part": "Lesson-level tracking arrived late, or you paid for tracking the company already had.", "none": "Built features that depend on data you were not collecting." }
+          },
+          {
+            "id": "no_vanity", "label": "Avoided a vanity metric",
+            "rule": { "fn": "vanity_trap", "params": { "vanity": ["mau"] } },
+            "evidence": { "full": "Judged success on {primary}, not on a vanity metric.", "part": "Leaned on {primary} alongside a vanity metric.", "none": "Chose a vanity metric ({primary}) as the measure of success." }
+          }
+        ]
+      },
+      {
+        "id": "experimentation", "name": "Experimentation", "weight": 15,
+        "subcriteria": [
+          {
+            "id": "tested_before_rollout", "label": "Tested risky levers before rolling them out",
+            "rule": { "fn": "ab_before_rollout", "params": { "levers": ["reminder_policy", "adaptive_reminders", "batch_leaderboard"] } },
+            "evidence": { "full": "Tested {lever} before rolling it out.", "part": "Tested some risky levers before rolling them out.", "none": "Did not test {lever} before rolling it out, or rolled out nothing worth testing." }
+          },
+          {
+            "id": "test_hygiene", "label": "Ran tests that could answer the question",
+            "rule": { "fn": "test_hygiene", "params": {} },
+            "evidence": { "full": "Tests had enough sample and duration and were not stopped early.", "part": "Some tests were too small or too short to trust.", "none": "Tests were too small, too short or stopped early." }
+          },
+          {
+            "id": "acted_on_result", "label": "Acted on what the test showed",
+            "rule": { "fn": "acted_on_result", "params": {} },
+            "evidence": { "full": "Shipped what won and dropped what lost.", "part": "Acted on some results and ignored others.", "none": "Ignored what the tests showed." }
+          }
+        ]
+      },
+      {
+        "id": "risk_thinking", "name": "Risk and second-order thinking", "weight": 15,
+        "subcriteria": [
+          {
+            "id": "stayed_under_fatigue", "label": "Kept reminders under the fatigue line",
+            "rule": { "fn": "notif_below_ceiling", "params": { "full_share": 0.8, "part_share": 1.0 } },
+            "evidence": { "full": "Reminder volume stayed under the fatigue ceiling.", "part": "Reminder volume touched the fatigue ceiling.", "none": "Reminder volume went over the ceiling for {segment}." }
+          },
+          {
+            "id": "prepared_for_shock", "label": "Was ready when the market moved",
+            "rule": { "fn": "shock_prepared", "params": {} },
+            "evidence": { "full": "The cycle {cycle} event was largely absorbed ({absorbed} of the hit).", "part": "The cycle {cycle} event was partly absorbed ({absorbed} of the hit).", "none": "The cycle {cycle} event landed in full." }
+          },
+          {
+            "id": "pricing_fit", "label": "Chose a pricing call the data supports",
+            "rule": { "fn": "monetisation_fit", "params": {} },
+            "backed_by": { "any_of": [{ "reading": "price_sensitivity" }, { "reading": "attribution_gap" }], "missing": "Chose a good option, but nothing you had asked or measured showed what learners would pay or how much of a completion clients credit to us." },
+            "evidence": { "full": "{choice} was within {gap} of the best option.", "part": "{choice} captured {share} of the best option.", "none": "{choice} captured only {share} of the best option." }
+          }
+        ]
+      },
+      {
+        "id": "communication", "name": "Stakeholder communication", "weight": 10,
+        "subcriteria": [
+          {
+            "id": "update_complete", "label": "Kept your manager in the loop",
+            "rule": { "fn": "status_update_complete", "params": { "fields": ["hypothesis", "bet", "expected_movement", "risk"] } },
+            "evidence": { "full": "Every cycle update covered hypothesis, bet, expected movement and risk.", "part": "{n} of {total} updates were complete.", "none": "Cycle updates were missing or incomplete." }
+          },
+          {
+            "id": "expectations_held", "label": "Said what you expected, and it happened",
+            "rule": { "fn": "expectation_calibrated", "params": { "tolerance": 0.2 } },
+            "evidence": { "full": "Expectations matched outcomes in {n} of {total} cycles.", "part": "Expectations matched outcomes in {n} of {total} cycles.", "none": "Outcomes rarely matched what you said to expect." }
+          }
+        ]
+      }
+    ],
+    "modifiers": [
+      { "id": "found_it_first", "points": 3, "rule": { "fn": "lever_live_before", "params": { "lever": "watch_pattern_review", "before": ["microlessons", "lesson_notes"] } }, "why": "Found out when learners actually study before building for them." },
+      { "id": "fatigue_twice", "points": -3, "rule": { "fn": "notif_over_ceiling_consecutive", "params": { "cycles": 2 } }, "why": "Reminder volume stayed above the fatigue ceiling for two cycles running." },
+      { "id": "untested_risky", "points": -2, "rule": { "fn": "risky_lever_without_test", "params": { "levers": ["reminder_policy", "adaptive_reminders"] } }, "why": "Changed reminder behaviour for real learners without a test." },
+      { "id": "sprinkled", "points": -2, "rule": { "fn": "levers_started_in_cycle_gt", "params": { "n": 3 } }, "why": "Started more than three new bets in one cycle, about three sprints each." },
+      { "id": "built_the_favourite", "points": -2, "rule": { "fn": "built_before_evidence", "params": { "lever": "batch_leaderboard", "evidence_levers": ["learner_interviews", "watch_pattern_review", "ab_test"] } }, "why": "Built the favourite feature before any research or test supported it." },
+      { "id": "killed_a_loser", "points": 2, "rule": { "fn": "killed_losing_test", "params": {} }, "why": "Dropped a lever once the test showed it did not work." },
+      { "id": "guardrail_answered", "points": 2, "rule": { "fn": "guardrail_breach_responded", "params": { "metric": "notif_opt_out" } }, "why": "The guardrail moved the wrong way and you changed course." },
+      { "id": "expectation_held", "points": 1, "rule": { "fn": "expectation_within", "params": { "tolerance": 0.2 } }, "why": "The cycle landed roughly where you said you expected it to." },
+      { "id": "pricing_fit_bonus", "points": 4, "rule": { "fn": "endgame_choice_within_best", "params": { "within": 0.85 } }, "why": "The pricing call matched what learners and clients would actually pay for." },
+      { "id": "pricing_misfit", "points": -4, "rule": { "fn": "endgame_choice_below", "params": { "below": 0.5 } }, "why": "The pricing call would have captured less than half of the best option." }
+    ]
+  },
+
+  "endgame": {
+    "cycle": 4,
+    "title": "Leadership asks: where does the next rupee come from?",
+    "brief": "Completion is up or it is not. Leadership wants a pricing decision on the learner side of the platform. You have to choose one and say why.",
+    "options": [
+      {
+        "id": "fee_on_completion", "name": "Per-completion fee",
+        "pitch": "Charge the client a fee for each learner who completes through Quillfield.",
+        "value_model": { "fn": "endgame_value", "params": { "segment": "deadline_driven", "fee_inr": 320, "placements_per_active_per_cycle": 0.10, "traceable_share": "1 - attribution_gap", "dispute_cost_share": 0.30 } }
+      },
+      {
+        "id": "learner_addon", "name": "Learner add-on",
+        "pitch": "A paid add-on for learners: coaching and recognised certificates.",
+        "value_model": { "fn": "endgame_value", "params": { "price_inr_month": 349, "months": 3, "conversion_from": "price_sensitivity" } }
+      },
+      {
+        "id": "creator_commission", "name": "Instructor marketplace commission",
+        "pitch": "Earn a share of what completers spend on courses from outside experts.",
+        "value_model": { "fn": "endgame_value", "params": { "commission_share": 0.30, "avg_course_inr": 15000, "attach_rate_per_engaged_placed": 0.20, "requires_lever": "next_course_paths" } }
+      },
+      {
+        "id": "stay_licence_invest", "name": "Keep licences and invest in completion",
+        "pitch": "Keep learners on free company licences and use completion to win renewals and bigger seat counts.",
+        "value_model": { "fn": "endgame_value", "params": { "value_per_return_point_inr": 1500000, "uses": "return_30d_final_minus_baseline" } }
+      }
+    ],
+    "grading": { "within_best_full": 0.85, "within_best_part": 0.5, "reasoning_required": true }
+  },
+
+  "calibration": {
+    "bots": [
+      { "id": "do_nothing", "policy": "Commits no capacity, asks no questions, answers nothing.", "expected_final": { "min": 0, "max": 30 } },
+      { "id": "lazy_filler", "policy": "Commits no capacity but fills every reflection field with a random answer and every status field with a stock sentence.", "expected_final": { "min": 0, "max": 30 } },
+      { "id": "random_valid", "policy": "Picks random affordable levers and random reflection answers.", "expected_final": { "min": 25, "max": 50 } },
+      { "id": "notification_spammer", "policy": "Maxes reminder volume on every segment, builds nothing else.", "expected_final": { "min": 0, "max": 35 } },
+      { "id": "framework_first", "policy": "Builds the batch leaderboard and next-course pathways in cycle 1 without research or tests. Structure without evidence tops out near 41: the criteria that need research or a test are out of reach and the rest are capped at part, so even a careful version of this plan reaches about that. The range was 40-60 before the first run and was revised to 30-45 after the measurements in the README.", "expected_final": { "min": 30, "max": 45 } },
+      { "id": "cautious_researcher", "policy": "Briefs, reads the answers, runs every research lever, never builds.", "expected_final": { "min": 40, "max": 55 } },
+      { "id": "answer_key_guesser", "policy": "Gives every correct reflection answer from cycle 1 with no research behind them, and builds the wrong things first.", "expected_final": { "min": 45, "max": 70 } },
+      { "id": "insight_first", "policy": "Briefs first and reads the answers (tracking, scope, the term's worry), instruments only if needed, runs the lesson-watch review, builds in scope, prepares for the threat it was told of, sets reminders under the ceiling after a test, picks the supported pricing call.", "expected_final": { "min": 75, "max": 100 } },
+      { "id": "insight_by_reach", "policy": "The same, but puts build capacity on what pays across all learners rather than on what the focus segment responds to.", "expected_final": { "min": 75, "max": 100 } }
+    ],
+    "playbook": {
+      "brief": { "first": "why_completion", "then": ["focus_learners", "current_data", "reminder_constraints", "eng_capacity"], "fallback": "pricing_plans" },
+      "focus": { "during": "deadline_driven", "post": "completers", "during_stage": "during_programme", "post_stage": "after_completion" },
+      "diagnosis": { "variable": "deadline_pull", "lever": "watch_pattern_review", "cause": "deadline_pull", "unknown": "need_more_data" },
+      "scripts": {
+        "notification_spammer": {
+          "base": { "focusSegment": "deadline_driven", "reflection": { "root_cause": "reminders_too_few", "primary_metric": "weekly_sessions", "guardrail_metric": "none", "expected_movement": "up_large" } },
+          "cycles": [{}, {}, {}, { "endgame": { "option": "fee_on_completion", "reasoning": "More logins mean more completions." } }]
+        },
+        "framework_first": {
+          "base": { "reflection": { "root_cause": "no_social_pull", "primary_metric": "return_30d", "guardrail_metric": "none", "expected_movement": "up_large" } },
+          "cycles": [
+            { "clarify": ["why_completion", "focus_learners", "define_completion"], "focusSegment": "deadline_driven", "start": ["batch_leaderboard", "next_course_paths", "weekly_goals"], "impactRanking": ["batch_leaderboard", "next_course_paths", "weekly_goals"] },
+            { "notifications": { "deadline_driven": { "volume": 4 }, "steady_learners": { "volume": 3 }, "completers": { "volume": 2 } }, "start": ["lesson_tracking"] },
+            { "start": ["microlessons", "lesson_notes"] },
+            { "endgame": { "option": "learner_addon", "reasoning": "Learners will pay for coaching." } }
+          ]
+        },
+        "cautious_researcher": {
+          "tracked": {
+            "base": { "reflection": { "root_cause": "need_more_data", "primary_metric": "return_30d", "guardrail_metric": "notif_opt_out", "expected_movement": "flat" } },
+            "cycles": [
+              { "focusSegment": "$during_first", "start": ["learner_interviews", "completer_survey", "watch_pattern_review"], "experiments": [{ "lever": "reminder_policy", "segment": "deadline_driven", "samplePct": 50, "weeks": 4, "volume": 6 }, { "lever": "next_course_paths", "segment": "completers", "samplePct": 50, "weeks": 4 }] },
+              { "start": ["learning_pipeline"], "experiments": [{ "lever": "batch_leaderboard", "segment": "completers", "samplePct": 50, "weeks": 4 }, { "lever": "microlessons", "segment": "deadline_driven", "samplePct": 50, "weeks": 4 }] },
+              { "experiments": [{ "lever": "microlessons", "segment": "completers", "samplePct": 50, "weeks": 4 }, { "lever": "reminder_policy", "segment": "steady_learners", "samplePct": 50, "weeks": 4, "volume": 3 }] },
+              { "endgame": { "option": "stay_licence_invest", "reasoning": "Nothing here has been proven to pay." } }
+            ]
+          },
+          "untracked": {
+            "base": { "reflection": { "root_cause": "need_more_data", "primary_metric": "return_30d", "guardrail_metric": "notif_opt_out", "expected_movement": "flat" } },
+            "cycles": [
+              { "focusSegment": "$during_first", "start": ["lesson_tracking", "learner_interviews", "completer_survey"], "experiments": [{ "lever": "reminder_policy", "segment": "deadline_driven", "samplePct": 50, "weeks": 4, "volume": 6 }, { "lever": "next_course_paths", "segment": "completers", "samplePct": 50, "weeks": 4 }] },
+              { "start": ["watch_pattern_review", "learning_pipeline"], "experiments": [{ "lever": "batch_leaderboard", "segment": "completers", "samplePct": 50, "weeks": 4 }, { "lever": "microlessons", "segment": "deadline_driven", "samplePct": 50, "weeks": 4 }] },
+              { "experiments": [{ "lever": "microlessons", "segment": "completers", "samplePct": 50, "weeks": 4 }, { "lever": "reminder_policy", "segment": "steady_learners", "samplePct": 50, "weeks": 4, "volume": 3 }] },
+              { "endgame": { "option": "stay_licence_invest", "reasoning": "Nothing here has been proven to pay." } }
+            ]
+          }
+        },
+        "answer_key_guesser": {
+          "base": { "reflection": { "root_cause": "deadline_pull", "primary_metric": "return_30d", "guardrail_metric": "notif_opt_out", "expected_movement": "up_small" }, "impactRanking": ["microlessons", "manager_digest", "next_course_paths", "weekly_goals", "batch_leaderboard", "lesson_notes"] },
+          "cycles": [
+            { "clarify": ["why_completion", "focus_learners", "define_completion", "current_data", "reminder_constraints", "pricing_plans"], "focusSegment": "completers", "experiments": [{ "lever": "reminder_policy", "segment": "deadline_driven", "samplePct": 50, "weeks": 4, "volume": 6 }], "start": ["lesson_tracking", "batch_leaderboard", "next_course_paths"] },
+            { "notifications": { "deadline_driven": { "volume": 2.8, "targeting": "rules" }, "steady_learners": { "volume": 1.5, "targeting": "rules" }, "completers": { "volume": 0.7, "targeting": "rules" } }, "start": ["microlessons", "weekly_goals"] },
+            {},
+            { "endgame": { "option": "stay_licence_invest", "reasoning": "Completion is the asset." } }
+          ]
+        }
+      },
+      "insight": {
+        "basic_tracking": "lesson_tracking", "pipeline": "learning_pipeline", "analytics": "watch_pattern_review", "research": ["learner_interviews", "completer_survey"],
+        "first_cycle_tests": [{ "lever": "reminder_policy", "segment": "deadline_driven", "weeks": 4, "volume": 6 }, { "lever": "reminder_policy", "segment": "$post_first", "weeks": 4, "volume": 3 }],
+        "second_cycle_tests": [{ "lever": "reminder_policy", "segment": "steady_learners", "weeks": 4, "volume": 3 }, { "lever": "batch_leaderboard", "segment": "$post_first", "weeks": 4 }],
+        "last_cycle_tests": [{ "lever": "cohort_holdout", "segment": "deadline_driven", "samplePct": 10, "weeks": 4 }, { "lever": "addon_offer", "segment": "steady_learners", "weeks": 4 }, { "lever": "completion_fee_offer", "segment": "deadline_driven", "weeks": 4 }],
+        "gated_build": "batch_leaderboard", "cheap_leader": "lesson_notes",
+        "prepare": { "rival_bundle": ["next_course_paths"], "budget_freeze": ["manager_digest", "weekly_goals"] },
+        "finding_adds": { "variable": "deadline_pull", "build": "weekly_goals" },
+        "margins": { "default": 0.7, "by_threat": { "reminder_outage": 0.4 } }
+      }
+    },
+    "invariants": [
+      "The do-nothing bot must land in the Poor band (below 40).",
+      "In one fixed world, replaying identical decisions under different seeds moves the final score by at most 8 points, so measurement luck cannot outscore a well-argued run.",
+      "Evidence-driven play scores well in every world, within a 12 point spread from the 10th to the 90th percentile.",
+      "final = trait_total + modifier_total for every cycle, and trait weights sum to 100.",
+      "The insight-first bot must beat the framework-first bot by at least 15 points."
+    ]
+  }
+}

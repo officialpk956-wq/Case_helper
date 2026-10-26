@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pm-venture.schema.json",
+  "title": "Venture simulation scenario",
+  "description": "One file = one playable case on the venture engine: a company with customers, a squad, money and hidden facts, played for four quarters. Engine-private: never ship the whole file to the browser (see src/venture/view.ts).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["family", "schema_version", "id", "title", "version", "meta", "company", "stage_names", "segments", "items", "squad", "start", "incident_base", "design_ref", "hidden", "events", "plans", "root", "measurement", "quarters", "rubric", "calibration"],
+  "properties": {
+    "family": { "const": "venture" },
+    "schema_version": { "const": "0.1" },
+    "id": { "$ref": "#/$defs/slug" },
+    "title": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domain", "seat", "audience", "est_minutes", "locale", "inspiration", "rights_note"],
+      "properties": {
+        "domain": { "enum": ["product", "growth", "engineering", "design", "leadership"] },
+        "seat": { "enum": ["product_manager", "chief_executive", "growth_strategy", "developer", "designer"] },
+        "order": { "type": "integer", "minimum": 1 },
+        "audience": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "est_minutes": { "type": "integer", "minimum": 10 },
+        "locale": { "type": "string" },
+        "inspiration": { "type": "string" },
+        "rights_note": { "type": "string" }
+      }
+    },
+
+    "company": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "one_liner", "stage", "market", "business_model", "product", "role", "brief", "stakeholders"],
+      "properties": {
+        "name": { "type": "string" }, "one_liner": { "type": "string" }, "stage": { "type": "string" }, "market": { "type": "string" },
+        "business_model": { "type": "string" }, "product": { "type": "string" }, "role": { "type": "string" }, "brief": { "type": "string" },
+        "stakeholders": {
+          "type": "array", "minItems": 1,
+          "items": { "type": "object", "additionalProperties": false, "required": ["name", "role", "says"], "properties": { "name": { "type": "string" }, "role": { "type": "string" }, "says": { "type": "string" } } }
+        }
+      }
+    },
+
+    "stage_names": { "type": "array", "description": "The three stages of the funnel, in order: what a player reads.", "minItems": 3, "maxItems": 3, "items": { "type": "string" } },
+
+    "segments": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "name", "description", "inflow", "stages", "churn", "arpu", "var_cost", "customers", "stage_cost"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" }, "name": { "type": "string" }, "description": { "type": "string" },
+          "inflow": { "type": "number", "exclusiveMinimum": 0, "description": "People who start the funnel each quarter." },
+          "stages": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "$ref": "#/$defs/rate" }, "description": "Conversion into each of the three stages." },
+          "churn": { "$ref": "#/$defs/rate", "description": "Share of customers lost each quarter." },
+          "arpu": { "type": "number", "minimum": 0, "description": "Rupees per customer per quarter." },
+          "var_cost": { "type": "number", "minimum": 0, "description": "Rupees to serve one customer for a quarter." },
+          "customers": { "type": "number", "minimum": 0 },
+          "stage_cost": { "type": "number", "minimum": 0, "description": "Rupees spent on each person who gets past the first stage." }
+        }
+      }
+    },
+
+    "items": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "name", "about", "area", "eng", "design", "data", "clar", "debt", "effects", "sponsor", "serves"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" }, "name": { "type": "string" }, "about": { "type": "string" }, "area": { "type": "string" },
+          "eng": { "type": "number", "minimum": 1, "description": "Engineering weeks. An item with none cannot be worked on." }, "design": { "type": "number", "minimum": 0 }, "data": { "type": "number", "minimum": 0 },
+          "clar": { "$ref": "#/$defs/rate", "description": "How well it is understood at the start." },
+          "debt": { "type": "number", "description": "Technical debt it adds (positive) or pays down (negative) when it ships." },
+          "quality": { "type": "object", "additionalProperties": false, "properties": { "rel": { "type": "number" }, "use": { "type": "number" } } },
+          "effects": { "type": "object", "propertyNames": { "$ref": "#/$defs/slug" }, "additionalProperties": { "$ref": "#/$defs/effect" } },
+          "scale": {
+            "type": "array",
+            "description": "Effect keys scaled by (hidden fact / ref): what the item is worth depends on a fact the player has to learn.",
+            "items": { "type": "object", "additionalProperties": false, "required": ["v", "ref", "keys"], "properties": { "v": { "$ref": "#/$defs/slug" }, "ref": { "type": "number", "exclusiveMinimum": 0 }, "keys": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/effectKey" } } } }
+          },
+          "per_new": { "type": "number", "minimum": 0 },
+          "per_new_on": { "enum": ["all", "lift"] },
+          "one_off": { "type": "number", "minimum": 0 },
+          "side_cost": {
+            "type": "object", "additionalProperties": false, "required": ["per_quarter"],
+            "properties": { "per_quarter": { "type": "number", "minimum": 0 }, "v": { "$ref": "#/$defs/slug" }, "ref": { "type": "number", "exclusiveMinimum": 0 }, "cut_by": { "$ref": "#/$defs/slug" }, "cut": { "$ref": "#/$defs/rate" } }
+          },
+          "sponsor": { "$ref": "#/$defs/party" },
+          "serves": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/priority" } },
+          "needs": {
+            "type": "object", "additionalProperties": false,
+            "properties": { "done": { "type": "array", "items": { "$ref": "#/$defs/slug" } }, "level": { "type": "integer", "minimum": 1, "maximum": 2 }, "trust": { "$ref": "#/$defs/trustNeed" }, "or_done": { "$ref": "#/$defs/slug" } }
+          },
+          "risky": { "type": "boolean" }, "big": { "type": "boolean" }, "fav": { "type": "boolean" },
+          "enables": { "type": "integer", "minimum": 1, "maximum": 2 }
+        }
+      }
+    },
+
+    "terms": {
+      "type": "object", "additionalProperties": false,
+      "description": "The words this case uses where the product team's words would be wrong: the three kinds of team capacity, the three company dials, and the five parties whose trust counts. Anything left out reads as the product team's word.",
+      "properties": {
+        "eng": { "type": "string", "minLength": 1 }, "design": { "type": "string", "minLength": 1 }, "data": { "type": "string", "minLength": 1 },
+        "debt": { "type": "string", "minLength": 1 }, "reliability": { "type": "string", "minLength": 1 }, "usability": { "type": "string", "minLength": 1 },
+        "parties": { "type": "object", "additionalProperties": false, "properties": { "eng": { "type": "string", "minLength": 1 }, "design": { "type": "string", "minLength": 1 }, "biz": { "type": "string", "minLength": 1 }, "lead": { "type": "string", "minLength": 1 }, "ext": { "type": "string", "minLength": 1 } } }
+      }
+    },
+
+    "squad": {
+      "type": "object", "additionalProperties": false,
+      "required": ["eng", "design", "data", "cost_eng", "cost_design", "cost_data", "pm", "fixed", "marketing"],
+      "properties": {
+        "eng": { "type": "integer", "minimum": 1 }, "design": { "type": "integer", "minimum": 0 }, "data": { "type": "integer", "minimum": 0 },
+        "cost_eng": { "type": "number", "minimum": 0 }, "cost_design": { "type": "number", "minimum": 0 }, "cost_data": { "type": "number", "minimum": 0 },
+        "pm": { "type": "number", "minimum": 0 }, "fixed": { "type": "number", "minimum": 0 }, "marketing": { "type": "number", "minimum": 0 }
+      }
+    },
+
+    "start": {
+      "type": "object", "additionalProperties": false,
+      "required": ["debt", "reliability", "usability", "morale", "trust", "cash", "level"],
+      "properties": {
+        "debt": { "$ref": "#/$defs/hundred" }, "reliability": { "$ref": "#/$defs/hundred" }, "usability": { "$ref": "#/$defs/hundred" }, "morale": { "$ref": "#/$defs/hundred" },
+        "trust": { "type": "object", "additionalProperties": false, "required": ["eng", "design", "biz", "lead", "ext"], "properties": { "eng": { "$ref": "#/$defs/hundred" }, "design": { "$ref": "#/$defs/hundred" }, "biz": { "$ref": "#/$defs/hundred" }, "lead": { "$ref": "#/$defs/hundred" }, "ext": { "$ref": "#/$defs/hundred" } } },
+        "cash": { "type": "number" },
+        "level": { "type": "integer", "minimum": 0, "maximum": 2 }
+      }
+    },
+    "incident_base": { "type": "number", "exclusiveMinimum": 0 },
+    "design_ref": { "type": "number", "exclusiveMinimum": 0 },
+
+    "hidden": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["id", "label", "description", "brief", "range"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" }, "label": { "type": "string" }, "description": { "type": "string" },
+          "brief": { "type": "number", "description": "What the case file says. The truth in any one game is drawn from range, which is not centred on this." },
+          "range": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } },
+          "unit": { "enum": ["share", "multiple"] }
+        }
+      }
+    },
+
+    "events": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "name", "weight", "signal", "body", "cause", "direction", "causes", "directions", "effects", "mitigations"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" }, "name": { "type": "string" }, "weight": { "type": "number", "exclusiveMinimum": 0 },
+          "signal": { "type": "string" }, "body": { "type": "string" },
+          "cause": { "$ref": "#/$defs/slug" }, "direction": { "$ref": "#/$defs/slug" },
+          "causes": { "$ref": "#/$defs/options" }, "directions": { "$ref": "#/$defs/options" },
+          "effects": { "type": "object", "propertyNames": { "$ref": "#/$defs/slug" }, "additionalProperties": { "$ref": "#/$defs/effect" } },
+          "incident": { "type": "number", "minimum": 0 },
+          "mitigations": {
+            "type": "array",
+            "items": {
+              "type": "object", "additionalProperties": false, "required": ["by"],
+              "properties": { "live": { "$ref": "#/$defs/slug" }, "trust": { "$ref": "#/$defs/trustNeed" }, "level": { "type": "integer", "minimum": 1, "maximum": 2 }, "rel": { "$ref": "#/$defs/hundred" }, "by": { "$ref": "#/$defs/rate" } }
+            }
+          }
+        }
+      }
+    },
+
+    "plans": {
+      "type": "array", "minItems": 2,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["id", "name", "pitch", "inflow", "arpu", "cost", "churn", "marketing", "needs"],
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" }, "name": { "type": "string" }, "pitch": { "type": "string" },
+          "inflow": { "type": "number", "exclusiveMinimum": 0 }, "arpu": { "type": "number", "exclusiveMinimum": 0 }, "cost": { "type": "number", "exclusiveMinimum": 0 },
+          "churn": { "type": "number", "exclusiveMinimum": 0 }, "marketing": { "type": "number", "exclusiveMinimum": 0 },
+          "needs": { "type": "object", "additionalProperties": false, "properties": { "use": { "$ref": "#/$defs/hundred" }, "rel": { "$ref": "#/$defs/hundred" }, "debt_below": { "$ref": "#/$defs/hundred" }, "trust": { "$ref": "#/$defs/trustNeed" } } }
+        }
+      }
+    },
+
+    "root": {
+      "type": "object", "additionalProperties": false, "required": ["prompt", "options", "dive", "threshold", "high", "low"],
+      "properties": {
+        "prompt": { "type": "string" }, "options": { "$ref": "#/$defs/options" },
+        "dive": { "$ref": "#/$defs/slug", "description": "The hidden fact whose value decides the root cause." },
+        "threshold": { "type": "number" }, "high": { "$ref": "#/$defs/slug" }, "low": { "$ref": "#/$defs/slug" }
+      }
+    },
+
+    "measurement": {
+      "type": "array", "minItems": 3, "maxItems": 3,
+      "items": { "type": "object", "additionalProperties": false, "required": ["level", "label", "shows"], "properties": { "level": { "type": "integer", "minimum": 0, "maximum": 2 }, "label": { "type": "string" }, "shows": { "type": "string" } } }
+    },
+
+    "quarters": {
+      "type": "array", "minItems": 4, "maxItems": 4,
+      "items": { "type": "object", "additionalProperties": false, "required": ["n", "title", "opening"], "properties": { "n": { "type": "integer", "minimum": 1, "maximum": 4 }, "title": { "type": "string" }, "opening": { "type": "string", "description": "A template: {name} is filled from the run (see src/venture/narrative.ts)." } } }
+    },
+
+    "rubric": {
+      "type": "object", "additionalProperties": false, "required": ["dimensions", "doubled", "bands"],
+      "properties": {
+        "dimensions": { "type": "array", "minItems": 1, "items": { "type": "object", "additionalProperties": false, "required": ["id", "name", "weight"], "properties": { "id": { "$ref": "#/$defs/slug" }, "name": { "type": "string" }, "weight": { "type": "number", "exclusiveMinimum": 0 } } } },
+        "doubled": { "type": "array", "items": { "$ref": "#/$defs/slug" }, "uniqueItems": true },
+        "bands": { "type": "array", "minItems": 2, "items": { "type": "object", "additionalProperties": false, "required": ["min", "label"], "properties": { "min": { "type": "number" }, "label": { "type": "string" } } } }
+      }
+    },
+
+    "calibration": {
+      "type": "object", "additionalProperties": false, "required": ["seeds", "bots"],
+      "properties": {
+        "seeds": { "type": "integer", "minimum": 10 },
+        "min_gap": { "type": "object", "additionalProperties": false, "required": ["gap", "why"], "properties": { "gap": { "type": "number", "minimum": 0 }, "why": { "type": "string" } }, "description": "How far evidence-led play must beat the textbook manager, when a case sets it below the default of 25. The why says what was seen." },
+        "bots": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["id", "expected_final"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "expected_final": { "$ref": "#/$defs/range" },
+              "revised": {
+                "type": "object", "additionalProperties": false, "required": ["min", "max", "why"],
+                "description": "Present when the expected range was changed after seeing results: the range as first written, and why it moved.",
+                "properties": { "min": { "type": "number" }, "max": { "type": "number" }, "why": { "type": "string" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "slug": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "rate": { "type": "number", "minimum": 0, "maximum": 1 },
+    "hundred": { "type": "number", "minimum": 0, "maximum": 100 },
+    "range": { "type": "object", "additionalProperties": false, "required": ["min", "max"], "properties": { "min": { "type": "number" }, "max": { "type": "number" } } },
+    "party": { "enum": ["eng", "design", "biz", "lead", "ext"] },
+    "priority": { "enum": ["grow", "activate", "retain", "monetise", "quality", "debt", "learn"] },
+    "effectKey": { "enum": ["s1", "s2", "s3", "churn", "arpu", "cost", "inflow"] },
+    "effect": {
+      "type": "object", "additionalProperties": false,
+      "description": "Relative lifts to one segment. A positive churn lift is a reduction in losses, so an adverse effect on losses is negative; a negative cost lift makes serving cheaper.",
+      "properties": { "s1": { "type": "number" }, "s2": { "type": "number" }, "s3": { "type": "number" }, "churn": { "type": "number" }, "arpu": { "type": "number" }, "cost": { "type": "number" }, "inflow": { "type": "number" } }
+    },
+    "trustNeed": { "type": "array", "prefixItems": [{ "$ref": "#/$defs/party" }, { "type": "number", "minimum": 0, "maximum": 100 }], "minItems": 2, "maxItems": 2, "items": false },
+    "options": { "type": "array", "minItems": 2, "items": { "type": "object", "additionalProperties": false, "required": ["id", "label"], "properties": { "id": { "$ref": "#/$defs/slug" }, "label": { "type": "string" } } } }
+  }
+}

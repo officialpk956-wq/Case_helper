@@ -1,0 +1,9 @@
+# Public launch
+
+The app is prepared for a **single-instance Render web service with a paid persistent disk**. `render.yaml` specifies the service, disk, Node version, and storage paths. Vercel is not the target for this build: its function filesystem cannot retain the accounts and runs files.
+
+Before creating the Render Blueprint, put only the source in a private Git repository. `data/`, `out/`, `node_modules/`, and logs are excluded by `.gitignore`; check the files being committed. Do not upload the local `data/users.json` or `data/runs.json`. Set `PUBLIC_ORIGIN` to the final exact HTTPS address (for example `https://your-service.onrender.com`) and `CONTACT_EMAIL` to an address users can reach. The app refuses to start without these in hosted mode. The persistent disk is mounted at `/var/data`; both `USERS_FILE` and `RUNS_FILE` must remain there. Do not scale to multiple instances with file storage.
+
+Run `npm ci`, `npm run typecheck`, `npm run check`, and `npm test` before deployment. After deployment, check `/login.html`, register a new test account, start and finish one retention and one venture case, restart the service, confirm the same sign-in and scores remain, confirm a second account cannot read either run, then delete the test account. Check desktop and mobile browser layouts and the browser console. Keep the announcement on hold until this checks out on the actual public HTTPS URL.
+
+Public beta limitations: there is no password recovery, so a forgotten password means creating another account. At most 200 runs are held; once full, a new run can replace an older run belonging to its own account. Data is stored in flat files and supports one process only. The service operator is responsible for disk snapshots, monitoring, and privacy requests. Browser drafts and timers are local to a device. The app has no external analytics or email.

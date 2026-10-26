@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in: pm-sim</title>
+  <meta name="description" content="Sign in to practise product decisions on a company with a real problem, a limited budget and hidden facts to find out.">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/login.html">pm<span>-sim</span></a>
+    <span class="grow"></span>
+    <button class="btn small ghost" type="button" id="theme" aria-label="Switch light and dark">◐</button>
+  </header>
+  <main class="login" id="main">
+    <section class="login-intro">
+      <div class="eyebrow">Decision simulations</div>
+      <h1>Run a company for a year and see what your calls were worth.</h1>
+      <p>Pick a case, make the decisions a product, growth, engineering, design or company lead makes, and get scored on how you decided: what you checked first, what you chose and how you adapted.</p>
+    </section>
+    <div class="card login-card">
+      <div class="row tabs" role="group" aria-label="Sign in or create an account">
+        <button class="btn small primary" type="button" id="tab-login" aria-pressed="true">Sign in</button>
+        <button class="btn small" type="button" id="tab-register" aria-pressed="false">Create account</button>
+      </div>
+      <!-- method="post" so that if the script ever fails to load, a submit cannot put the password in the address -->
+      <form id="form" method="post" action="/api/auth/login" novalidate>
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+          <span class="muted small" id="username-hint" hidden>3 to 32 letters, digits, dots, dashes or underscores.</span>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <span class="muted small" id="password-hint" hidden>At least 8 characters.</span>
+        </div>
+        <p class="form-error" id="error" role="alert" hidden></p>
+        <button class="btn primary wide" type="submit" id="submit">Sign in</button>
+      </form>
+      <p class="muted small">Your account and runs are stored by this site's operator. Other accounts cannot access your runs through the app.</p>
+      <p class="muted small" id="agree" hidden>By creating an account you accept the <a href="/legal.html#terms">terms</a> and the <a href="/legal.html#privacy">privacy note</a>.</p>
+      <p class="muted small fineprint"><a href="/legal.html">Privacy and terms</a></p>
+    </div>
+  </main>
+  <noscript><p>pm-sim needs JavaScript.</p></noscript>
+  <script type="module" src="/login.js"></script>
+</body>
+</html>

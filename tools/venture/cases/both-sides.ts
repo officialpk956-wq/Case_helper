@@ -1,0 +1,126 @@
+// Case 6. The growth and strategy seat: a home-services marketplace that has to grow households and providers together.
+// Which cities to open, how much to pay each side, and what the repeat rate and the partner channel are really worth.
+import type { FitPlan } from "../fit.ts";
+import { calibration, measurement, meta, quarters, rubric, squad } from "../common.ts";
+import type { VentureScenario } from "../../../src/venture/types.ts";
+
+export const slug = "both-sides";
+
+export const raw: VentureScenario = {
+  family: "venture", schema_version: "0.1", id: "nestwork_both_sides", title: "Both Sides of the Market", version: "1.0.0",
+  meta: meta("growth_strategy", "growth", 6, ["growth-leads", "strategy-heads", "mba-students"]),
+  terms: {
+    reliability: "Booking reliability", usability: "App usability",
+    parties: { eng: "Engineering", design: "Design", biz: "Cities and operations", lead: "Leadership and board", ext: "Providers and partners" },
+  },
+  company: {
+    name: "Nestwork", one_liner: "A marketplace where households in eight Indian cities book cleaners, electricians and plumbers, and a board that wants to open six more.",
+    stage: "Series B, growing and losing money", market: "India: home services booked through an app in eight cities",
+    business_model: "Takes a share of every booking. Providers keep the rest, and a booking nobody accepts earns nothing.",
+    product: "A booking app for households and a separate app for the providers who take the jobs.",
+    role: "Head of growth and strategy. You decide where Nestwork expands and how it pays each side of the market, and you answer to the CEO and the board.",
+    brief: "Nestwork loses about ₹1.7 crore a quarter and has ₹16 crore in the bank. Every city needs households and providers at the same time: too few providers and bookings fail, too few households and providers leave. Each of your colleagues has a number to back a plan, and each of them gains if you believe it. You have four quarters of twelve weeks, and then the board backs one plan for the year after.",
+    stakeholders: [
+      { name: "Dhruv Kapoor", role: "Chief executive and co-founder", says: "The board wants a land grab. Six cities at once, and the leader in each city is ours before the rival arrives." },
+      { name: "Arjun Verma", role: "Head of city operations", says: "Forty providers to a ward is all a city needs. We ran Pune on that and bookings were fine." },
+      { name: "Shalini Gupta", role: "Chief financial officer", says: "Fifty-five percent of our households rebook inside ninety days. A subscription locks that in and pays back inside the year." },
+      { name: "Pooja Reddy", role: "Head of partnerships", says: "A bank's card app and the housing-society apps would give us a million warm leads for nothing up front, and half of them rebook like our own." },
+      { name: "Vikram Anand", role: "Head of product and design", says: "Bookings fail in the new cities because the flow is clumsy. Fix the flow and the rest follows." },
+      { name: "Neha Joshi", role: "Head of provider supply", says: "Providers will leave the moment we raise the take rate. Guaranteed minimum earnings are what keep a new city alive." },
+    ],
+  },
+  stage_names: ["Opened the app", "Searched for a service", "Completed a booking"],
+  segments: [
+    { id: "core", name: "Mature cities", description: "Bengaluru and Mumbai, where the app has been for years.", inflow: 110000, stages: [0.35, 0.5, 0.55], churn: 0.18, arpu: 1500, var_cost: 560, customers: 52000, stage_cost: 60 },
+    { id: "mid", name: "Second-wave cities", description: "Pune, Hyderabad and Chennai, opened in the last two years.", inflow: 80000, stages: [0.32, 0.45, 0.5], churn: 0.22, arpu: 1300, var_cost: 600, customers: 22000, stage_cost: 80 },
+    { id: "new", name: "Newest cities", description: "Jaipur, Indore and Kochi, where many bookings still fail for lack of a provider.", inflow: 260000, stages: [0.3, 0.4, 0.3], churn: 0.32, arpu: 1100, var_cost: 650, customers: 9000, stage_cost: 100 },
+  ],
+  items: [
+    { id: "open_six_cities", name: "Open six new cities in one quarter", about: "Launch in six cities at once, with a local team, provider onboarding and a launch campaign in each. The board's favourite.", area: "growth", eng: 24, design: 2, data: 2, clar: 0.4, debt: 3,
+      effects: { new: { inflow: 1.0, s3: 0.1 } },
+      side_cost: { per_quarter: 90, v: "providers_needed", ref: 1.0, cut_by: "provider_guarantee", cut: 0.5 }, sponsor: "lead", serves: ["grow"], big: true, risky: true, fav: true },
+    { id: "subscription", name: "A monthly home-care subscription", about: "Four visits a month at a fixed price, with the same provider where possible.", area: "retention", eng: 22, design: 5, data: 2, clar: 0.4, debt: 2,
+      effects: { core: { churn: 0.2, arpu: 0.12 }, mid: { churn: 0.15, arpu: 0.1 } },
+      scale: [{ v: "repeat_rate", ref: 0.55, keys: ["churn", "arpu"] }], side_cost: { per_quarter: 40 }, needs: { level: 2 }, sponsor: "design", serves: ["retain", "monetise"], big: true, risky: true },
+    { id: "partner_channel", name: "A distribution partnership with a bank's card app and housing-society apps", about: "A button inside other people's apps that sends households to book. You pay the partner a share of each booking.", area: "growth", eng: 14, design: 1, data: 1, clar: 0.5, debt: 1,
+      effects: { core: { inflow: 0.3, s3: 0.04 }, mid: { inflow: 0.25 } },
+      scale: [{ v: "partner_quality", ref: 0.5, keys: ["inflow", "s3"] }], side_cost: { per_quarter: 35 }, sponsor: "ext", serves: ["grow"], big: true, risky: true },
+    { id: "deepen_cities", name: "Deepen the second-wave cities", about: "More providers, more service categories and local marketing in Pune, Hyderabad and Chennai.", area: "growth", eng: 20, design: 2, data: 1, clar: 0.6, debt: 1,
+      effects: { mid: { inflow: 0.15, s3: 0.1, churn: 0.06 }, core: { churn: 0.04 } }, sponsor: "biz", serves: ["retain", "activate"] },
+    { id: "provider_guarantee", name: "Guaranteed minimum earnings for new providers", about: "Pay a floor to providers in their first two months, so a new city does not empty out before it fills.", area: "reliability", eng: 8, design: 0, data: 1, clar: 0.7, debt: 0,
+      effects: { new: { s3: 0.18, churn: 0.05 }, mid: { s3: 0.08 } }, side_cost: { per_quarter: 40 }, sponsor: "ext", serves: ["activate", "quality"] },
+    { id: "first_booking_credit", name: "₹300 off a first booking", about: "A credit for new households, in every city.", area: "growth", eng: 6, design: 2, data: 1, clar: 0.7, debt: 0,
+      effects: { core: { s1: 0.1, s2: 0.08 }, mid: { s1: 0.12, s2: 0.1 }, new: { s1: 0.15 } }, scale: [{ v: "promo_stick", ref: 0.5, keys: ["s1", "s2"] }], per_new: 300, sponsor: "biz", serves: ["grow"] },
+    { id: "raise_take_rate", name: "Raise the take rate on the busiest services", about: "Keep a larger share of each booking where providers have the most work, and tell them why.", area: "monetise", eng: 5, design: 1, data: 2, clar: 0.6, debt: 0,
+      effects: { core: { arpu: 0.15, churn: -0.03 }, mid: { arpu: 0.14, churn: -0.04 }, new: { arpu: 0.12, s3: -0.05 } }, sponsor: "lead", serves: ["monetise"] },
+    { id: "booking_flow", name: "Simplify the booking flow and add live tracking", about: "Fewer steps to book, and a map that shows where the provider is.", area: "growth", eng: 18, design: 5, data: 1, clar: 0.6, debt: -1, quality: { use: 4 },
+      effects: { core: { s2: 0.08, s3: 0.06 }, mid: { s2: 0.1, s3: 0.08 }, new: { s2: 0.1, s3: 0.1 } }, sponsor: "design", serves: ["activate"] },
+    { id: "provider_app", name: "A better provider app: schedules, payouts and ratings", about: "Providers see their jobs, get paid the next day and can block out time.", area: "reliability", eng: 16, design: 3, data: 0, clar: 0.65, debt: -3, quality: { rel: 8 },
+      effects: { core: { churn: 0.04, s3: 0.03 }, mid: { churn: 0.05, s3: 0.04 }, new: { churn: 0.05, s3: 0.05 } }, sponsor: "eng", serves: ["quality", "retain"] },
+    { id: "platform_rebuild", name: "Rebuild dispatch and matching", about: "Replace the matching code that was written for one city and patched for eight.", area: "debt", eng: 28, design: 0, data: 1, clar: 0.5, debt: -12, quality: { rel: 5 },
+      effects: { core: { cost: -0.04, s3: 0.02 }, mid: { cost: -0.04, s3: 0.02 } }, sponsor: "eng", serves: ["debt", "quality"] },
+    { id: "cohort_dash", name: "A supply and demand dashboard by city", about: "Providers available, bookings requested and bookings completed, by ward and by week. Raises measurement to level 2.", area: "learning", eng: 8, design: 0, data: 3, clar: 0.9, debt: -1, enables: 2,
+      effects: {}, sponsor: "lead", serves: ["learn"] },
+    { id: "seo_content", name: "Search and content for service pages", about: "A page for every service in every city that people search for.", area: "growth", eng: 10, design: 3, data: 0, clar: 0.7, debt: 0,
+      effects: { core: { inflow: 0.12 }, mid: { inflow: 0.1 } }, sponsor: "biz", serves: ["grow"] },
+    { id: "damage_cover", name: "Damage cover and a 30-day guarantee", about: "If a job goes wrong, Nestwork pays or redoes it.", area: "reliability", eng: 9, design: 2, data: 0, clar: 0.7, debt: 0, quality: { rel: 3 },
+      effects: { core: { churn: 0.05, s3: 0.03, cost: 0.02 }, mid: { churn: 0.06, s3: 0.03, cost: 0.02 }, new: { churn: 0.06, s3: 0.04, cost: 0.02 } }, sponsor: "lead", serves: ["quality", "retain"] },
+  ],
+  squad: squad(12, 3, 3, 330, 240),
+  start: { debt: 50, reliability: 55, usability: 58, morale: 62, trust: { eng: 60, design: 58, biz: 52, lead: 50, ext: 48 }, cash: 1600, level: 1 },
+  incident_base: 1.0, design_ref: 20,
+  hidden: [
+    { id: "providers_needed", label: "Providers a ward really needs before bookings stop failing, against the forty the operations head assumes", description: "Pune worked at forty a ward because demand there is thin. The new cities have more households per ward and longer travel times.", brief: 1.0, range: [0.8, 2.6], unit: "multiple" },
+    { id: "repeat_rate", label: "Share of households that rebook within ninety days", description: "The finance head's fifty-five percent comes from households that have booked more than once, which leaves out everyone who booked once and went away.", brief: 0.55, range: [0.2, 0.6], unit: "share" },
+    { id: "partner_quality", label: "Share of partner-channel households who behave like your own", description: "The partnerships head counts warm leads. Households that arrive through someone else's app often book once for the offer and never return.", brief: 0.5, range: [0.15, 0.6], unit: "share" },
+    { id: "promo_stick", label: "Share of households won by a first-booking credit who stay", description: "Credits bring in people who would never have tried the app at full price, and some of them are only there for the credit.", brief: 0.5, range: [0.15, 0.6], unit: "share" },
+  ],
+  events: [
+    { id: "rival_subsidy", name: "A rival launches with subsidies", weight: 0.35, signal: "Bookings are falling in Bengaluru and Pune since a new rival launched with ₹500 off every first booking and free onboarding for providers.",
+      body: "A rival with fresh money is buying share in your best cities. It will keep the offer up for as long as its investors let it.",
+      cause: "rival_subsidy", direction: "protect_best",
+      causes: [{ id: "rival_subsidy", label: "A rival buying share with subsidies" }, { id: "bad_release", label: "Our own release broke search" }, { id: "seasonal_dip", label: "A seasonal dip" }],
+      directions: [{ id: "protect_best", label: "Protect repeat households and the best providers, and do not chase the rival's price" }, { id: "match_promos", label: "Match the rival's discounts everywhere" }, { id: "pause_ads", label: "Pause advertising until it passes" }],
+      effects: { core: { s1: -0.1, churn: -0.06 }, mid: { s1: -0.14, churn: -0.08 }, new: { s1: -0.1 } }, incident: 0.5,
+      mitigations: [{ live: "subscription", by: 0.25 }, { live: "provider_app", by: 0.15 }, { trust: ["biz", 55], by: 0.1 }] },
+    { id: "ruling", name: "A ruling reclassifies providers as employees", weight: 0.35, signal: "A state labour ruling says providers in your biggest city are employees, with a deadline in two months. Providers are asking what happens to their payouts.",
+      body: "If the ruling stands, Nestwork must provide benefits and minimum pay to providers in that state, and the cost lands in every booking.",
+      cause: "reclassification", direction: "comply_reprice",
+      causes: [{ id: "reclassification", label: "A ruling reclassifying providers" }, { id: "strike", label: "A provider strike" }, { id: "fraud_ring", label: "A fraud ring among providers" }],
+      directions: [{ id: "comply_reprice", label: "Comply, restructure payouts and tell providers and customers plainly" }, { id: "challenge", label: "Challenge it in court and change nothing meanwhile" }, { id: "exit_city", label: "Pull out of the city" }],
+      effects: { core: { cost: 0.15, s3: -0.05 }, mid: { cost: 0.15, s3: -0.06 }, new: { cost: 0.2, s3: -0.08 } }, incident: 0.8,
+      mitigations: [{ live: "provider_app", by: 0.2 }, { live: "raise_take_rate", by: 0.2 }, { trust: ["ext", 55], by: 0.15 }] },
+    { id: "monsoon", name: "The monsoon collapse", weight: 0.3, signal: "Bookings fell by a third in a month after the festival season, and providers are drifting to other work.",
+      body: "Demand for home services drops hard every monsoon, and providers who have no work take other jobs. The question is who is still on your platform when the rains stop.",
+      cause: "seasonal", direction: "hold_providers",
+      causes: [{ id: "seasonal", label: "A seasonal drop that comes back" }, { id: "rival_launch", label: "A rival's launch" }, { id: "app_bug", label: "An app bug" }],
+      directions: [{ id: "hold_providers", label: "Keep the best providers on a retainer and cut spend on households until the rains stop" }, { id: "cut_everything", label: "Cut spend on both sides" }, { id: "push_promos", label: "Push promotions to bring demand back" }],
+      effects: { core: { s2: -0.1, s3: -0.08 }, mid: { s2: -0.12, s3: -0.1 }, new: { s2: -0.14, s3: -0.12 } }, incident: 0.3,
+      mitigations: [{ live: "provider_guarantee", by: 0.25 }, { level: 2, by: 0.15 }, { trust: ["ext", 55], by: 0.1 }] },
+  ],
+  plans: [
+    { id: "deepen", name: "Deepen three cities", pitch: "Stay in eleven cities and make the three weakest work properly before opening any more.", inflow: 1.08, arpu: 1.1, cost: 0.94, churn: 0.88, marketing: 0.9, needs: { rel: 60, debt_below: 60 } },
+    { id: "open_six", name: "Open six cities", pitch: "Take the land-grab: six more cities in the next year, while the money lasts.", inflow: 1.4, arpu: 1.0, cost: 1.08, churn: 1.08, marketing: 1.4, needs: { rel: 66, trust: ["ext", 60] } },
+    { id: "profit", name: "Go for profit", pitch: "Stop opening cities, raise the take rate and market only where households come back.", inflow: 0.85, arpu: 1.15, cost: 0.9, churn: 0.9, marketing: 0.6, needs: { debt_below: 50 } },
+  ],
+  root: {
+    prompt: "Why do so many bookings in the newest cities fail?",
+    options: [{ id: "provider_shortage", label: "Too few providers near the households" }, { id: "booking_flow", label: "The booking flow is clumsy" }, { id: "price", label: "Prices are too high" }, { id: "need_more_data", label: "I need more data" }],
+    dive: "providers_needed", threshold: 1.4, high: "provider_shortage", low: "booking_flow",
+  },
+  measurement: measurement("Bookings and revenue by city", "Visits, completed bookings, revenue and the money. Nothing about why a booking failed."),
+  quarters: quarters(
+    "{company} runs at {hold_profit} a quarter and has {cash} in the bank, {runway}. Of every 100 people who open the app in the newest cities, {per100_new} complete a booking. Your team has about {road} weeks of engineering this quarter, and every one of them is spoken for.",
+    "Two sides, one market",
+    "The board will back one of three plans for the year after. Profit last quarter was {profit}. Where you stand: app usability {U}, booking reliability {R}, technical debt {D}, engineering trust {trust_eng}, leadership trust {trust_lead}."),
+  rubric: rubric("growth_strategy"), calibration: calibration(),
+};
+
+export const plan: FitPlan = {
+  ordinary: { deepen_cities: 1.1, provider_guarantee: 0.9, first_booking_credit: 0.9, raise_take_rate: 1.6, booking_flow: 1.0, provider_app: 0.9, platform_rebuild: 0.7, seo_content: 0.8, damage_cover: 0.9 },
+  bets: [
+    { id: "open_six_cities", knob: "side", hidden: "providers_needed", kind: "A", tier: 1.4 },
+    { id: "subscription", knob: "side", hidden: "repeat_rate", kind: "B", tier: 1.3 },
+    { id: "partner_channel", knob: "side", hidden: "partner_quality", kind: "B", tier: 1.3 },
+  ],
+};

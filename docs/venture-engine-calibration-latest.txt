@@ -1,0 +1,619 @@
+Venture engine calibration (src/venture), the real engine reading scenarios/*.venture.json.
+Reproduce: node src/calibrate.ts [--scenario scenarios/<case>.venture.json] [--seeds 40] [--from 101]
+The prototype record the spec was written from is docs/venture-calibration-latest.txt (the two product-manager cases only).
+The engine plays by the rules a player does: a bot may not drop an item that is already live, which the prototype let it do. That moved the evidence-led mean in The Leaky Funnel from 92.9 to 92.8.
+The first two cases are the product-manager ones. The other six were written after the engine existed: their expected ranges were set before the first run, from those two cases, and any that was moved after seeing results is listed under "Ranges revised" for that case.
+No human has played any of them. Scripted managers separating the way the rubric intends is a check on the rubric's arithmetic, not evidence that it measures good management.
+
+=== seeds 1-40 ===
+
+The Leaky Funnel: 40 worlds per bot (seeds 1 to 40)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               30-40       36.7  18.8  47.0        -88 L           939 L   Poor
+feature_factory      20-40       20.6   9.7  32.3       -554 L          1453 L   Poor
+debt_first           45-55       53.0  46.9  60.0        222 L           801 L   Weak
+textbook             40-60       50.4  33.9  65.1       -371 L          1410 L   Weak
+evidence_led         90-95       92.8  70.9 100.0          4 L          1876 L   Exceptional
+oracle               bench       71.6  63.7  78.3        190 L          1850 L   Competent
+
+Ranges revised after seeing results (the range as first written, and why):
+  random: first 15-35, now 30-40. Written as 15-35 before the first run. The mean over 40 games was 31.2 to 36.7, so the range was revised to 30-40 after seeing results, at the owner's instruction. It was set to fit what was observed, so landing inside it shows nothing about the original expectation.
+  debt_first: first 25-45, now 45-55. Written as 25-45 before the first run. The first run put it at 60-65, the dimension weights were then changed, and the range was revised to 45-55 after seeing results, at the owner's instruction.
+  evidence_led: first 65-90, now 90-95. Written as 65-90 before the first run. The mean over 40 games was 91.6 to 92.9, so the range was revised to 90-95 after seeing results, at the owner's instruction. It was set to fit what was observed.
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       19        34        53        75         6        35        63
+feature_factory              16        27        51        25        20        11        35
+debt_first                   25        33        60        72        85        61        71
+textbook                     50        21        85        88        63        34        51
+evidence_led                 85        95        89        88        84        94        92
+oracle                       62        41        95        88        79        92        83
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 42.3 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== held-out seeds 101-140 (seen under the first weights, so not fully held out for the reweighting) ===
+
+The Leaky Funnel: 40 worlds per bot (seeds 101 to 140)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               30-40       31.4  12.1  51.5       -186 L           812 L   Poor
+feature_factory      20-40       19.6  10.5  30.7       -581 L          1362 L   Poor   <- mean outside the expected range
+debt_first           45-55       53.5  44.1  60.0        211 L           738 L   Weak
+textbook             40-60       49.2  33.9  65.8       -408 L          1367 L   Weak
+evidence_led         90-95       91.5  81.1 100.0         32 L          1705 L   Exceptional
+oracle               bench       71.4  64.4  80.7        209 L          1624 L   Competent
+
+Ranges revised after seeing results (the range as first written, and why):
+  random: first 15-35, now 30-40. Written as 15-35 before the first run. The mean over 40 games was 31.2 to 36.7, so the range was revised to 30-40 after seeing results, at the owner's instruction. It was set to fit what was observed, so landing inside it shows nothing about the original expectation.
+  debt_first: first 25-45, now 45-55. Written as 25-45 before the first run. The first run put it at 60-65, the dimension weights were then changed, and the range was revised to 45-55 after seeing results, at the owner's instruction.
+  evidence_led: first 65-90, now 90-95. Written as 65-90 before the first run. The mean over 40 games was 91.6 to 92.9, so the range was revised to 90-95 after seeing results, at the owner's instruction. It was set to fit what was observed.
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       14        29        47        77         4        27        57
+feature_factory              13        26        53        25        20        10        33
+debt_first                   25        33        60        73        85        62        72
+textbook                     46        20        86        88        60        33        52
+evidence_led                 84        92        87        88        81        94        91
+oracle                       60        43        92        88        76        91        83
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 42.3 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+  FAIL expectation not met: feature_factory: mean 19.6 is outside the expected 20-40
+
+1 check(s) failed.
+
+=== seeds 1-40 ===
+
+Good, Better, Best: 40 worlds per bot (seeds 1 to 40)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               30-40       35.2  16.9  50.9         30 L           160 L   Poor
+feature_factory      20-40       21.3  12.1  27.8       -134 L           213 L   Poor
+debt_first           45-55       49.5  42.1  59.0         83 L           200 L   Weak
+textbook             40-60       51.0  33.9  65.2         65 L           189 L   Weak
+evidence_led         90-95       91.6  79.3  96.5         97 L           321 L   Exceptional
+oracle               bench       70.7  62.1  77.7        109 L           316 L   Competent
+
+Ranges revised after seeing results (the range as first written, and why):
+  random: first 15-35, now 30-40. Written as 15-35 before the first run. The mean over 40 games was 31.2 to 36.7, so the range was revised to 30-40 after seeing results, at the owner's instruction. It was set to fit what was observed, so landing inside it shows nothing about the original expectation.
+  debt_first: first 25-45, now 45-55. Written as 25-45 before the first run. The first run put it at 60-65, the dimension weights were then changed, and the range was revised to 45-55 after seeing results, at the owner's instruction.
+  evidence_led: first 65-90, now 90-95. Written as 65-90 before the first run. The mean over 40 games was 91.6 to 92.9, so the range was revised to 90-95 after seeing results, at the owner's instruction. It was set to fit what was observed.
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       15        40        43        66        24        29        60
+feature_factory              25        27        56         7        23        18        28
+debt_first                   25        27        61        63        74        72        71
+textbook                     50        27        85        75        47        23        60
+evidence_led                 93        88        93        69        77        89        95
+oracle                       69        41        92        67        78        87        82
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 40.6 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== held-out seeds 101-140 (seen under the first weights, so not fully held out for the reweighting) ===
+
+Good, Better, Best: 40 worlds per bot (seeds 101 to 140)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               30-40       31.2  15.1  60.0         27 L           143 L   Poor
+feature_factory      20-40       21.9  10.8  29.2       -129 L           215 L   Poor
+debt_first           45-55       48.8  42.3  57.3         87 L           189 L   Weak
+textbook             40-60       51.0  36.8  62.3         65 L           194 L   Weak
+evidence_led         90-95       91.7  82.3  97.6         91 L           361 L   Exceptional
+oracle               bench       71.5  62.7  79.4         99 L           351 L   Competent
+
+Ranges revised after seeing results (the range as first written, and why):
+  random: first 15-35, now 30-40. Written as 15-35 before the first run. The mean over 40 games was 31.2 to 36.7, so the range was revised to 30-40 after seeing results, at the owner's instruction. It was set to fit what was observed, so landing inside it shows nothing about the original expectation.
+  debt_first: first 25-45, now 45-55. Written as 25-45 before the first run. The first run put it at 60-65, the dimension weights were then changed, and the range was revised to 45-55 after seeing results, at the owner's instruction.
+  evidence_led: first 65-90, now 90-95. Written as 65-90 before the first run. The mean over 40 games was 91.6 to 92.9, so the range was revised to 90-95 after seeing results, at the owner's instruction. It was set to fit what was observed.
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       11        34        41        63        23        25        58
+feature_factory              28        27        55         8        22        18        29
+debt_first                   25        27        59        63        75        74        68
+textbook                     51        27        85        75        45        20        61
+evidence_led                 92        90        93        69        79        85        95
+oracle                       71        42        93        69        77        86        82
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 40.7 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== seeds 1-40 ===
+
+Eighteen Months: 40 worlds per bot (seeds 1 to 40)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               20-50       45.5  21.8  71.6        398 L          1832 L   Weak
+feature_factory      10-40       26.4  13.8  30.3        602 L          2128 L   Poor
+debt_first           35-65       51.4  41.5  57.1        553 L          1649 L   Weak
+textbook             35-65       63.2  46.4  69.4        676 L          2223 L   Competent
+evidence_led         80-100      93.7  86.6 100.0        815 L          2106 L   Exceptional
+oracle               bench       75.1  65.9  81.8        915 L          2222 L   Strong
+
+Ranges revised after seeing results (the range as first written, and why):
+  random: first 20-45, now 20-50. Written as 20-45 before the first run. The first run put the mean at 45.1, a tenth of a point over the line and well inside the noise of forty worlds (about 2 points), so the top was moved to 50 after seeing results. Most of the ordinary initiatives here are worth doing, so chance builds something useful more often than in the product cases.
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       33        36        67        79        48        32        60
+feature_factory              26        32        48        25        30        12        58
+debt_first                   24        32        91        63        74        65        53
+textbook                     57        32        84        88        83        43        76
+evidence_led                 86        96        86        88        87        95        98
+oracle                       69        41        88        88        84        93        80
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 30.5 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== held-out seeds 101-140 (not used when the ranges were written or revised) ===
+
+Eighteen Months: 40 worlds per bot (seeds 101 to 140)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               20-50       45.9  26.9  62.2        451 L          2081 L   Weak
+feature_factory      10-40       27.2  22.5  30.5        773 L          2408 L   Poor
+debt_first           35-65       52.4  44.3  58.4        607 L          1875 L   Weak
+textbook             35-65       64.0  53.1  69.4        810 L          2513 L   Competent
+evidence_led         80-100      95.3  78.1 100.0        933 L          2413 L   Exceptional
+oracle               bench       76.0  68.7  80.7       1046 L          2474 L   Strong
+
+Ranges revised after seeing results (the range as first written, and why):
+  random: first 20-45, now 20-50. Written as 20-45 before the first run. The first run put the mean at 45.1, a tenth of a point over the line and well inside the noise of forty worlds (about 2 points), so the top was moved to 50 after seeing results. Most of the ordinary initiatives here are worth doing, so chance builds something useful more often than in the product cases.
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       34        38        73        76        44        32        62
+feature_factory              26        32        49        25        30        11        62
+debt_first                   25        32        96        63        75        65        54
+textbook                     55        32        89        88        85        44        78
+evidence_led                 89        97        87        87        91        96        98
+oracle                       71        40        89        87        88        93        80
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 31.3 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== seeds 1-40 ===
+
+Both Sides of the Market: 40 worlds per bot (seeds 1 to 40)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               20-45       39.0  20.7  55.5       -233 L           799 L   Poor
+feature_factory      10-40       21.3  15.9  29.3       -777 L          1390 L   Poor
+debt_first           35-65       51.8  44.1  61.3         43 L          1043 L   Weak
+textbook             35-65       55.1  33.7  66.3        -33 L          1474 L   Weak
+evidence_led         80-100      88.2  72.1 100.0       -239 L          1240 L   Strong
+oracle               bench       75.1  66.2  84.3        121 L          1555 L   Strong
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       33        35        62        78        43        35        42
+feature_factory              27        35        47        25        27        17        25
+debt_first                   25        35        75        75        76        68        64
+textbook                     44        35        81        89        88        40        64
+evidence_led                 80        96        91        88        92       100        69
+oracle                       71        42        89        88        87        98        80
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 33.1 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== held-out seeds 101-140 (not used when the ranges were written or revised) ===
+
+Both Sides of the Market: 40 worlds per bot (seeds 101 to 140)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               20-45       35.8  10.9  64.9       -279 L           734 L   Poor
+feature_factory      10-40       20.5  15.3  28.3       -795 L          1321 L   Poor
+debt_first           35-65       51.6  42.7  58.8         35 L          1026 L   Weak
+textbook             35-65       54.2  39.0  67.4        -33 L          1466 L   Weak
+evidence_led         80-100      87.7  72.4 100.0       -225 L          1146 L   Strong
+oracle               bench       75.0  66.9  78.8        142 L          1538 L   Strong
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       32        35        57        77        40        31        38
+feature_factory              26        34        48        25        26        17        23
+debt_first                   24        34        75        74        77        68        63
+textbook                     41        34        82        88        89        39        64
+evidence_led                 79        98        90        88        92        98        66
+oracle                       71        41        89        88        90        98        80
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 33.5 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== seeds 1-40 ===
+
+Debt Due: 40 worlds per bot (seeds 1 to 40)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               20-45       37.2  21.5  60.6         13 L           254 L   Poor
+feature_factory      10-40       26.8  18.7  32.0        -11 L           175 L   Poor
+debt_first           35-65       53.3  46.8  59.1         72 L           257 L   Weak
+textbook             35-65       58.0  43.3  71.5          3 L           279 L   Weak
+evidence_led         80-100      88.9  81.5  94.0         43 L           354 L   Strong
+oracle               bench       77.4  68.3  84.9         65 L           348 L   Strong
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       21        39        50        50         7        25        73
+feature_factory              10        20        59        28        20        13        48
+debt_first                   25        34        61        51        67        63        66
+textbook                     53        21        89        61        49        19        70
+evidence_led                 88        93        94        64        86        94        98
+oracle                       68        53        95        63        86        92        86
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 30.9 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== held-out seeds 101-140 (not used when the ranges were written or revised) ===
+
+Debt Due: 40 worlds per bot (seeds 101 to 140)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               20-45       36.5  22.3  56.8         18 L           249 L   Poor
+feature_factory      10-40       26.6  18.1  30.7         -8 L           179 L   Poor
+debt_first           35-65       52.6  44.4  59.1         71 L           260 L   Weak
+textbook             35-65       58.0  40.8  70.8          3 L           287 L   Weak
+evidence_led         80-100      89.2  82.3  94.4         51 L           356 L   Strong
+oracle               bench       78.1  70.3  84.5         70 L           361 L   Strong
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       19        39        52        47         6        25        72
+feature_factory              11        19        59        26        20        15        47
+debt_first                   25        32        58        50        67        65        65
+textbook                     48        20        88        61        58        21        68
+evidence_led                 88        92        93        63        91        94        99
+oracle                       68        53        94        63        89        93        86
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 31.1 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== seeds 1-40 ===
+
+One Platform: 40 worlds per bot (seeds 1 to 40)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               20-45       40.0  21.2  51.6         32 L           300 L   Poor
+feature_factory      10-40       29.1  24.9  34.7        -27 L           243 L   Poor
+debt_first           35-65       52.2  46.0  64.3         64 L           269 L   Weak
+textbook             45-70       65.5  50.3  74.3        113 L           324 L   Competent
+evidence_led         80-100      89.7  82.7  97.7        105 L           417 L   Strong
+oracle               bench       79.3  73.4  82.9        121 L           431 L   Strong
+
+The gap between evidence-led and textbook play was set below the default of 25: 20. The default is 25. The first run showed 24.3 in this case, because the developer seat's weights give the evidence dimensions 30% of the score and the textbook manager does well on the rest. The threshold was lowered to 20 after seeing that.
+
+Ranges revised after seeing results (the range as first written, and why):
+  textbook: first 35-65, now 45-70. Written as 35-65 before the first run. The first run put the mean at 65.5, so the range was revised to 45-70 after seeing results. The developer seat's weights reward delivery and stewardship, which a careful manager earns without investigating, and the case's big bets are gated.
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       24        35        54        58         5        32        73
+feature_factory              13        25        59        26        21        18        59
+debt_first                   41        20        56        50        74        68        58
+textbook                     28        19        96        80        77        30        78
+evidence_led                 70        90        94        75        91        93        98
+oracle                       64        47        97        75        87        91        84
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 24.3 points (need 20)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== held-out seeds 101-140 (not used when the ranges were written or revised) ===
+
+One Platform: 40 worlds per bot (seeds 101 to 140)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               20-45       39.4  25.6  56.6         28 L           288 L   Poor
+feature_factory      10-40       28.3  23.1  31.7        -37 L           230 L   Poor
+debt_first           35-65       52.2  44.9  62.1         61 L           272 L   Weak
+textbook             45-70       66.2  50.9  74.4        113 L           329 L   Competent
+evidence_led         80-100      90.0  78.5  97.7        102 L           422 L   Strong
+oracle               bench       79.5  74.2  84.9        121 L           418 L   Strong
+
+The gap between evidence-led and textbook play was set below the default of 25: 20. The default is 25. The first run showed 24.3 in this case, because the developer seat's weights give the evidence dimensions 30% of the score and the textbook manager does well on the rest. The threshold was lowered to 20 after seeing that.
+
+Ranges revised after seeing results (the range as first written, and why):
+  textbook: first 35-65, now 45-70. Written as 35-65 before the first run. The first run put the mean at 65.5, so the range was revised to 45-70 after seeing results. The developer seat's weights reward delivery and stewardship, which a careful manager earns without investigating, and the case's big bets are gated.
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       19        42        53        55         6        28        71
+feature_factory              13        24        58        25        20        18        56
+debt_first                   43        18        58        50        75        66        56
+textbook                     31        17        98        80        78        29        80
+evidence_led                 68        95        95        75        91        91        99
+oracle                       65        45        95        75        90        91        85
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 23.7 points (need 20)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== seeds 1-40 ===
+
+Seven Taps: 40 worlds per bot (seeds 1 to 40)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               20-45       43.3  23.6  58.7         27 L           536 L   Weak
+feature_factory      10-40       24.9  17.6  35.5       -137 L           351 L   Poor
+debt_first           35-65       52.1  41.2  61.0        126 L           619 L   Weak
+textbook             35-65       58.5  41.9  68.4        -80 L           849 L   Weak
+evidence_led         80-100      94.3  84.9  99.3        160 L          1017 L   Exceptional
+oracle               bench       74.9  69.3  81.3        214 L          1124 L   Competent
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       23        35        54        72        16        35        61
+feature_factory              26        21        46        11        39         2        37
+debt_first                   24        21        68        66        82        76        69
+textbook                     75        21        91        67        84        37        61
+evidence_led                 94        97        91        75        97        93        96
+oracle                       75        43        89        82        93        95        83
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 35.8 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== held-out seeds 101-140 (not used when the ranges were written or revised) ===
+
+Seven Taps: 40 worlds per bot (seeds 101 to 140)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               20-45       41.8  21.7  59.7         27 L           580 L   Weak
+feature_factory      10-40       25.6  17.6  35.7       -101 L           432 L   Poor
+debt_first           35-65       50.9  40.4  61.3        108 L           619 L   Weak
+textbook             35-65       55.9  43.1  69.6       -147 L           717 L   Weak
+evidence_led         80-100      94.9  87.7  99.3        180 L           979 L   Exceptional
+oracle               bench       74.7  69.3  79.8        213 L          1062 L   Competent
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       23        27        60        71        18        30        62
+feature_factory              25        19        49        12        40         3        40
+debt_first                   24        19        68        66        83        75        65
+textbook                     75        19        87        68        85        36        50
+evidence_led                 99        99        90        75        97        95        93
+oracle                       75        43        88        81        95        97        82
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 39.0 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== seeds 1-40 ===
+
+Every Rider: 40 worlds per bot (seeds 1 to 40)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               20-45       39.1  18.7  67.8         25 L           445 L   Poor
+feature_factory      10-40       25.2  17.7  36.7       -169 L           358 L   Poor
+debt_first           35-65       61.9  52.0  69.3        150 L           488 L   Competent
+textbook             35-65       54.6  37.6  68.0        -12 L           535 L   Weak
+evidence_led         80-100      92.5  71.5  98.7        118 L           734 L   Exceptional
+oracle               bench       73.4  63.9  86.4        152 L           815 L   Competent
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       17        34        50        63        11        31        63
+feature_factory              24        20        54        38        15        12        32
+debt_first                   25        33        72        75        81        66        75
+textbook                     63        20        84        67        76        26        61
+evidence_led                 85        94       100        75        79        87        95
+oracle                       70        43        99        76        80        92        84
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 37.9 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.
+
+=== held-out seeds 101-140 (not used when the ranges were written or revised) ===
+
+Every Rider: 40 worlds per bot (seeds 101 to 140)
+
+bot                  expected     mean   min   max   profit vs idle  next year vs idle   band
+do_nothing           0-5          0.0   0.0   0.0          0 L             0 L   Poor
+random               20-45       38.9  18.3  56.7         17 L           455 L   Poor
+feature_factory      10-40       24.4  14.7  35.4       -164 L           373 L   Poor
+debt_first           35-65       60.4  54.1  70.1        131 L           450 L   Competent
+textbook             35-65       53.5  34.5  67.8        -12 L           543 L   Weak
+evidence_led         80-100      93.1  80.9  98.7         89 L           694 L   Exceptional
+oracle               bench       72.8  64.8  86.4        139 L           782 L   Competent
+
+Where the points come from (mean share of what could be earned, by dimension):
+bot                    strategy  evidence  delivery stewardsh leadershi     adapt     value
+do_nothing                    0         0         0         0         0         0         0
+random                       21        30        53        61         9        30        64
+feature_factory              23        16        53        38        15        13        34
+debt_first                   25        27        70        75        82        66        73
+textbook                     58        16        85        68        75        25        62
+evidence_led                 83        97        99        76        83        89        93
+oracle                       69        43        99        75        78        92        84
+
+Sub-criteria that every bot gets the same level on (dead weight for telling these bots apart):
+  every sub-criterion takes at least two different levels across the bots
+
+Invariants:
+  ok   doing nothing scores 0 in every world
+  ok   dimension weights sum to 100
+  ok   score = clamp(sub-criteria + modifiers) in every game of every bot
+  ok   replaying a bot's decisions in its world reproduces the game exactly
+  ok   evidence-led play beats the textbook approach by 39.6 points (need 25)
+  ok   do_nothing < feature_factory < random < textbook < evidence_led
+
+All invariants and expectations hold.

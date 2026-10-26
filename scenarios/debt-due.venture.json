@@ -1,0 +1,960 @@
+{
+  "family": "venture",
+  "schema_version": "0.1",
+  "id": "brightkart_debt_due",
+  "title": "Debt Due",
+  "version": "1.0.0",
+  "meta": {
+    "domain": "engineering",
+    "seat": "developer",
+    "order": 7,
+    "audience": ["developers", "tech-leads", "engineering-students"],
+    "est_minutes": 75,
+    "locale": "en-IN",
+    "inspiration": "A manager's year in a company with a problem: four quarters, a team, hidden facts that sponsors state wrongly, one market event and a plan for the year after.",
+    "rights_note": "Original scenario. The company, the people, the product and every number are invented."
+  },
+  "company": {
+    "name": "Brightkart",
+    "one_liner": "A checkout and order service used by about 3,500 online stores in India, nine engineers, and a festival sale two quarters away.",
+    "stage": "Series B, close to break-even",
+    "market": "India: online stores of every size, with sharp spikes at festival sales",
+    "business_model": "A fee on every order that goes through checkout, with higher tiers for large merchants.",
+    "product": "The checkout and order service, and the API merchants build against.",
+    "role": "Tech lead for checkout and orders. Your team is nine engineers, one designer and two analysts.",
+    "brief": "You report to the CTO. The platform has grown by shortcuts, and the festival sale in two quarters will show whether it holds. Product wants new features, the architect wants a rewrite, and nobody can say where checkout time really goes, because production has almost no tracing. You have four quarters of twelve weeks.",
+    "stakeholders": [
+      {
+        "name": "Preeti Chandra",
+        "role": "CTO, your manager",
+        "says": "I will back the plan that keeps checkout up on sale day. Tell me what you know, not what you fear."
+      },
+      {
+        "name": "Nikhil Arora",
+        "role": "Head of Product",
+        "says": "Merchants keep asking for bulk exports and a self-serve API. Every quarter we say no, we lose deals."
+      },
+      {
+        "name": "Sanjay Kulkarni",
+        "role": "Principal engineer",
+        "says": "The order service is beyond saving. A rewrite is the only honest answer, and the design documents show it is a clean job."
+      },
+      {
+        "name": "Ritu Malhotra",
+        "role": "Head of Security",
+        "says": "Our scan says the payments library is fine. We have not had a finding in a year."
+      },
+      {
+        "name": "Dev Menon",
+        "role": "Site reliability lead",
+        "says": "On-call is burning people out. It is the database, I am sure of it, but I cannot show you, because we have no traces in production."
+      },
+      {
+        "name": "Karan Shah",
+        "role": "Head of Sales",
+        "says": "A self-serve API will triple small-store sign-ups. Every developer I meet at events can do it in an afternoon."
+      }
+    ]
+  },
+  "stage_names": ["Signed up", "Integrated", "Processing orders"],
+  "segments": [
+    {
+      "id": "small",
+      "name": "Small online stores",
+      "description": "Stores of one to ten people on a hosted shop builder.",
+      "inflow": 1200,
+      "stages": [0.7, 0.45, 0.6],
+      "churn": 0.1,
+      "arpu": 7000,
+      "var_cost": 1800,
+      "customers": 3000,
+      "stage_cost": 300
+    },
+    {
+      "id": "mid",
+      "name": "Mid-size retailers",
+      "description": "Brands and retailers with their own engineers.",
+      "inflow": 150,
+      "stages": [0.65, 0.5, 0.7],
+      "churn": 0.05,
+      "arpu": 55000,
+      "var_cost": 9000,
+      "customers": 420,
+      "stage_cost": 4000
+    },
+    {
+      "id": "large",
+      "name": "Marketplaces and large brands",
+      "description": "A few dozen merchants who bring most of the volume.",
+      "inflow": 12,
+      "stages": [0.6, 0.45, 0.65],
+      "churn": 0.03,
+      "arpu": 550000,
+      "var_cost": 80000,
+      "customers": 45,
+      "stage_cost": 60000
+    }
+  ],
+  "items": [
+    {
+      "id": "order_queue",
+      "name": "Move order writes to a queue",
+      "about": "Take order writes off the checkout path so a burst cannot lock the table.",
+      "area": "reliability",
+      "eng": 30,
+      "design": 0,
+      "data": 0,
+      "clar": 0.5,
+      "debt": -8,
+      "quality": {
+        "rel": 8
+      },
+      "effects": {
+        "small": {
+          "s3": 0.0619,
+          "churn": 0.0826
+        },
+        "mid": {
+          "s3": 0.0826,
+          "churn": 0.1032
+        },
+        "large": {
+          "s3": 0.1032,
+          "churn": 0.1238
+        }
+      },
+      "sponsor": "eng",
+      "serves": ["quality", "retain"]
+    },
+    {
+      "id": "idempotent_pay",
+      "name": "Make payment retries safe",
+      "about": "Idempotency keys, so a retried payment can never charge twice.",
+      "area": "reliability",
+      "eng": 14,
+      "design": 0,
+      "data": 0,
+      "clar": 0.7,
+      "debt": -3,
+      "quality": {
+        "rel": 5
+      },
+      "effects": {
+        "mid": {
+          "s3": 0.066,
+          "churn": 0.066
+        },
+        "large": {
+          "s3": 0.0791,
+          "churn": 0.0791
+        }
+      },
+      "sponsor": "lead",
+      "serves": ["quality", "retain"]
+    },
+    {
+      "id": "circuit_breakers",
+      "name": "Timeouts and circuit breakers",
+      "about": "Fail fast and shed load when a dependency is slow, instead of queueing everything behind it.",
+      "area": "reliability",
+      "eng": 10,
+      "design": 0,
+      "data": 0,
+      "clar": 0.8,
+      "debt": -2,
+      "quality": {
+        "rel": 10
+      },
+      "effects": {
+        "small": {
+          "churn": 0.0351
+        },
+        "mid": {
+          "churn": 0.0439
+        },
+        "large": {
+          "churn": 0.0439
+        }
+      },
+      "sponsor": "eng",
+      "serves": ["quality"]
+    },
+    {
+      "id": "test_suite",
+      "name": "Fix the flaky test suite",
+      "about": "Quarantine and repair the tests nobody trusts, so a green build means something.",
+      "area": "debt",
+      "eng": 14,
+      "design": 0,
+      "data": 0,
+      "clar": 0.7,
+      "debt": -8,
+      "quality": {
+        "rel": 3
+      },
+      "effects": {},
+      "sponsor": "eng",
+      "serves": ["debt", "quality"]
+    },
+    {
+      "id": "observability",
+      "name": "Tracing and dashboards in production",
+      "about": "Trace every checkout end to end, so the team can see where the time goes. Raises measurement to level 2.",
+      "area": "learning",
+      "eng": 12,
+      "design": 0,
+      "data": 1,
+      "clar": 0.9,
+      "debt": -1,
+      "enables": 2,
+      "effects": {},
+      "sponsor": "eng",
+      "serves": ["learn"]
+    },
+    {
+      "id": "feature_flags",
+      "name": "Feature flags and safe rollouts",
+      "about": "Ship behind flags and roll back in seconds.",
+      "area": "reliability",
+      "eng": 8,
+      "design": 0,
+      "data": 0,
+      "clar": 0.8,
+      "debt": -2,
+      "quality": {
+        "rel": 4
+      },
+      "effects": {
+        "small": {
+          "churn": 0.0256
+        },
+        "mid": {
+          "churn": 0.0256
+        },
+        "large": {
+          "churn": 0.0256
+        }
+      },
+      "sponsor": "eng",
+      "serves": ["quality"]
+    },
+    {
+      "id": "dep_upgrade",
+      "name": "Upgrade the payments library past end of support",
+      "about": "Replace the library the vendor stopped patching.",
+      "area": "security",
+      "eng": 10,
+      "design": 0,
+      "data": 0,
+      "clar": 0.6,
+      "debt": -3,
+      "effects": {
+        "mid": {
+          "churn": 0.0542
+        },
+        "large": {
+          "churn": 0.1016
+        }
+      },
+      "scale": [
+        {
+          "v": "cve_exposure",
+          "ref": 0.2,
+          "keys": ["churn"]
+        }
+      ],
+      "needs": {
+        "done": ["feature_flags"]
+      },
+      "sponsor": "ext",
+      "serves": ["quality", "retain"]
+    },
+    {
+      "id": "shard_db",
+      "name": "Shard the orders database",
+      "about": "Split orders across databases so one hot merchant cannot lock everyone.",
+      "area": "reliability",
+      "eng": 36,
+      "design": 0,
+      "data": 1,
+      "clar": 0.4,
+      "debt": -6,
+      "quality": {
+        "rel": 6
+      },
+      "effects": {
+        "small": {
+          "s3": 0.3233,
+          "churn": 0.3233
+        },
+        "mid": {
+          "s3": 0.5388,
+          "churn": 0.5388
+        },
+        "large": {
+          "s3": 0.6466,
+          "churn": 0.7543
+        }
+      },
+      "scale": [
+        {
+          "v": "lock_share",
+          "ref": 0.7,
+          "keys": ["s3", "churn"]
+        }
+      ],
+      "side_cost": {
+        "per_quarter": 58.64
+      },
+      "needs": {
+        "level": 2
+      },
+      "sponsor": "eng",
+      "serves": ["quality", "retain"],
+      "big": true,
+      "risky": true
+    },
+    {
+      "id": "rewrite_core",
+      "name": "Rewrite the order service",
+      "about": "Rebuild the order service cleanly beside the old one and cut over. The principal engineer's favourite.",
+      "area": "debt",
+      "eng": 40,
+      "design": 0,
+      "data": 0,
+      "clar": 0.35,
+      "debt": -14,
+      "quality": {
+        "rel": 4
+      },
+      "effects": {
+        "small": {
+          "churn": 0.1717,
+          "s3": 0.1373
+        },
+        "mid": {
+          "churn": 0.2746,
+          "arpu": 0.103
+        },
+        "large": {
+          "churn": 0.3433,
+          "arpu": 0.1717
+        }
+      },
+      "side_cost": {
+        "per_quarter": 38.6,
+        "v": "coupling",
+        "ref": 1
+      },
+      "needs": {
+        "trust": ["eng", 65],
+        "or_done": "test_suite"
+      },
+      "sponsor": "eng",
+      "serves": ["debt", "quality"],
+      "big": true,
+      "risky": true,
+      "fav": true
+    },
+    {
+      "id": "self_serve_api",
+      "name": "Self-serve onboarding API",
+      "about": "Let a store integrate without talking to anyone: keys, a sandbox, docs and a checklist.",
+      "area": "growth",
+      "eng": 24,
+      "design": 2,
+      "data": 0,
+      "clar": 0.5,
+      "debt": 2,
+      "effects": {
+        "small": {
+          "s1": 0.4419,
+          "s2": 0.5892
+        },
+        "mid": {
+          "s2": 0.2946
+        }
+      },
+      "scale": [
+        {
+          "v": "self_serve",
+          "ref": 0.7,
+          "keys": ["s1", "s2"]
+        }
+      ],
+      "side_cost": {
+        "per_quarter": 28.22
+      },
+      "sponsor": "biz",
+      "serves": ["grow", "activate"],
+      "risky": true
+    },
+    {
+      "id": "bulk_export",
+      "name": "Bulk order export for large merchants",
+      "about": "Scheduled exports of every order, in the formats finance teams ask for.",
+      "area": "monetise",
+      "eng": 14,
+      "design": 1,
+      "data": 0,
+      "clar": 0.8,
+      "debt": 1,
+      "effects": {
+        "mid": {
+          "arpu": 0.0114
+        },
+        "large": {
+          "arpu": 0.0303,
+          "churn": 0.0303
+        }
+      },
+      "sponsor": "biz",
+      "serves": ["monetise", "retain"]
+    },
+    {
+      "id": "latency_work",
+      "name": "Checkout latency sprint",
+      "about": "Profile and trim the slowest steps in checkout.",
+      "area": "growth",
+      "eng": 12,
+      "design": 0,
+      "data": 1,
+      "clar": 0.7,
+      "debt": 0,
+      "effects": {
+        "small": {
+          "s3": 0.0941
+        },
+        "mid": {
+          "s3": 0.0941
+        },
+        "large": {
+          "s3": 0.0706
+        }
+      },
+      "sponsor": "biz",
+      "serves": ["monetise", "activate"]
+    },
+    {
+      "id": "webhook_v2",
+      "name": "Reliable webhooks",
+      "about": "Retries, ordering and a replay tool for the events merchants depend on.",
+      "area": "reliability",
+      "eng": 12,
+      "design": 0,
+      "data": 0,
+      "clar": 0.7,
+      "debt": -1,
+      "quality": {
+        "rel": 3
+      },
+      "effects": {
+        "mid": {
+          "churn": 0.1211
+        },
+        "large": {
+          "churn": 0.1211
+        }
+      },
+      "sponsor": "lead",
+      "serves": ["retain", "quality"]
+    },
+    {
+      "id": "sandbox_docs",
+      "name": "Developer sandbox and docs",
+      "about": "A sandbox that behaves like production, and documentation written for the people who read it.",
+      "area": "growth",
+      "eng": 10,
+      "design": 2,
+      "data": 0,
+      "clar": 0.8,
+      "debt": 0,
+      "effects": {
+        "small": {
+          "s1": 0.0731,
+          "s2": 0.0609
+        },
+        "mid": {
+          "s2": 0.0305
+        }
+      },
+      "sponsor": "design",
+      "serves": ["activate", "grow"]
+    }
+  ],
+  "squad": {
+    "eng": 9,
+    "design": 1,
+    "data": 2,
+    "cost_eng": 8.75,
+    "cost_design": 8,
+    "cost_data": 8,
+    "pm": 12,
+    "fixed": 336,
+    "marketing": 60
+  },
+  "start": {
+    "debt": 72,
+    "reliability": 52,
+    "usability": 55,
+    "morale": 60,
+    "trust": {
+      "eng": 62,
+      "design": 55,
+      "biz": 46,
+      "lead": 55,
+      "ext": 50
+    },
+    "cash": 900,
+    "level": 1
+  },
+  "incident_base": 0.8,
+  "design_ref": 12,
+  "hidden": [
+    {
+      "id": "lock_share",
+      "label": "Share of checkout slowdowns caused by database locks",
+      "description": "The site reliability lead blames the database. The traces that would show it were never switched on in production.",
+      "brief": 0.7,
+      "range": [0.25, 0.85],
+      "unit": "share"
+    },
+    {
+      "id": "coupling",
+      "label": "How tangled the order service really is, against what the rewrite plan assumes",
+      "description": "The principal engineer scoped the rewrite from the design documents. Nobody has read the code the documents describe.",
+      "brief": 1,
+      "range": [0.8, 2.6],
+      "unit": "multiple"
+    },
+    {
+      "id": "self_serve",
+      "label": "Share of small stores that will integrate without help",
+      "description": "Sales assumes the developers they meet at events are typical of small stores.",
+      "brief": 0.7,
+      "range": [0.2, 0.9],
+      "unit": "share"
+    },
+    {
+      "id": "cve_exposure",
+      "label": "How exposed the old payments library really is",
+      "description": "The security scan was run against staging, which is not configured like production.",
+      "brief": 0.2,
+      "range": [0.1, 0.9],
+      "unit": "share"
+    }
+  ],
+  "events": [
+    {
+      "id": "sale_day_outage",
+      "name": "Checkout falls over on sale day",
+      "weight": 0.35,
+      "signal": "Checkout is timing out during the festival sale, and orders are queueing behind each other in the database.",
+      "body": "A burst of sale-day traffic locks the orders table. Merchants lose sales in the busiest hours of the year and blame the platform.",
+      "cause": "db_lock_storm",
+      "direction": "shed_and_queue",
+      "causes": [
+        {
+          "id": "db_lock_storm",
+          "label": "Database locks under load"
+        },
+        {
+          "id": "bad_release",
+          "label": "Our last release broke checkout"
+        },
+        {
+          "id": "card_network",
+          "label": "The card networks are slow"
+        }
+      ],
+      "directions": [
+        {
+          "id": "shed_and_queue",
+          "label": "Shed load, queue orders and tell merchants plainly"
+        },
+        {
+          "id": "roll_back",
+          "label": "Roll back the last release"
+        },
+        {
+          "id": "wait",
+          "label": "Wait for traffic to ease"
+        }
+      ],
+      "effects": {
+        "small": {
+          "s3": -0.08,
+          "churn": -0.08
+        },
+        "mid": {
+          "s3": -0.1,
+          "churn": -0.1
+        },
+        "large": {
+          "s3": -0.12,
+          "churn": -0.12
+        }
+      },
+      "incident": 1.5,
+      "mitigations": [
+        {
+          "live": "order_queue",
+          "by": 0.3
+        },
+        {
+          "live": "circuit_breakers",
+          "by": 0.15
+        },
+        {
+          "rel": 70,
+          "by": 0.15
+        }
+      ]
+    },
+    {
+      "id": "critical_vuln",
+      "name": "A critical flaw in the payments library",
+      "weight": 0.35,
+      "signal": "A researcher has published a critical flaw in the payments library you depend on, and two large merchants want your answer by Friday.",
+      "body": "The flaw is real and reachable in production. Until it is patched, large merchants may pause processing.",
+      "cause": "real_flaw",
+      "direction": "patch_disclose",
+      "causes": [
+        {
+          "id": "real_flaw",
+          "label": "A real flaw reaches production"
+        },
+        {
+          "id": "scanner_noise",
+          "label": "Scanner noise"
+        },
+        {
+          "id": "rival_fud",
+          "label": "A rival is stirring it up"
+        }
+      ],
+      "directions": [
+        {
+          "id": "patch_disclose",
+          "label": "Patch, disclose and tell merchants plainly"
+        },
+        {
+          "id": "deny",
+          "label": "Say it does not affect us"
+        },
+        {
+          "id": "quiet_fix",
+          "label": "Patch quietly"
+        }
+      ],
+      "effects": {
+        "mid": {
+          "churn": -0.08
+        },
+        "large": {
+          "churn": -0.2,
+          "s3": -0.08
+        }
+      },
+      "incident": 1,
+      "mitigations": [
+        {
+          "live": "dep_upgrade",
+          "by": 0.35
+        },
+        {
+          "live": "feature_flags",
+          "by": 0.15
+        },
+        {
+          "trust": ["ext", 55],
+          "by": 0.1
+        }
+      ]
+    },
+    {
+      "id": "engineer_leaves",
+      "name": "The strongest engineer gives notice",
+      "weight": 0.3,
+      "signal": "Your strongest engineer has given notice, and on-call has been exhausting for a month.",
+      "body": "Burnout, not money. The person who knows the order service best leaves in four weeks.",
+      "cause": "burnout",
+      "direction": "rotate_pair",
+      "causes": [
+        {
+          "id": "burnout",
+          "label": "Burnout from on-call"
+        },
+        {
+          "id": "pay",
+          "label": "A better offer elsewhere"
+        },
+        {
+          "id": "conflict",
+          "label": "A fight over the rewrite"
+        }
+      ],
+      "directions": [
+        {
+          "id": "rotate_pair",
+          "label": "Fix on-call, pair up and write down what they know"
+        },
+        {
+          "id": "counter_offer",
+          "label": "Make a counter-offer"
+        },
+        {
+          "id": "let_go",
+          "label": "Let them go and hire"
+        }
+      ],
+      "effects": {
+        "small": {
+          "s3": -0.04,
+          "churn": -0.04
+        },
+        "mid": {
+          "churn": -0.04
+        },
+        "large": {
+          "churn": -0.05
+        }
+      },
+      "incident": 1.2,
+      "mitigations": [
+        {
+          "trust": ["eng", 60],
+          "by": 0.25
+        },
+        {
+          "live": "test_suite",
+          "by": 0.2
+        },
+        {
+          "live": "observability",
+          "by": 0.15
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "modernise",
+      "name": "Modernise in steps",
+      "pitch": "Keep shipping while paying the platform down a quarter at a time.",
+      "inflow": 1.05,
+      "arpu": 1.08,
+      "cost": 0.95,
+      "churn": 0.9,
+      "marketing": 1,
+      "needs": {
+        "rel": 60,
+        "debt_below": 65
+      }
+    },
+    {
+      "id": "rewrite",
+      "name": "Rewrite the core",
+      "pitch": "Stop the line and rebuild the order service properly.",
+      "inflow": 0.9,
+      "arpu": 1.15,
+      "cost": 1,
+      "churn": 0.8,
+      "marketing": 0.9,
+      "needs": {
+        "debt_below": 55,
+        "trust": ["eng", 65]
+      }
+    },
+    {
+      "id": "ship",
+      "name": "Hold and ship",
+      "pitch": "Leave the platform as it is and give the business every feature it asks for.",
+      "inflow": 1.2,
+      "arpu": 1.05,
+      "cost": 1.05,
+      "churn": 1.1,
+      "marketing": 1.15,
+      "needs": {
+        "use": 55
+      }
+    }
+  ],
+  "root": {
+    "prompt": "Which of these do you believe is behind the slow, fragile checkout?",
+    "options": [
+      {
+        "id": "database_locks",
+        "label": "Database locks under load"
+      },
+      {
+        "id": "flaky_releases",
+        "label": "Flaky tests and rushed releases"
+      },
+      {
+        "id": "third_party",
+        "label": "A slow third-party payments API"
+      },
+      {
+        "id": "traffic",
+        "label": "Traffic we should have forecast"
+      },
+      {
+        "id": "need_more_data",
+        "label": "I need more data"
+      }
+    ],
+    "dive": "lock_share",
+    "threshold": 0.5,
+    "high": "database_locks",
+    "low": "flaky_releases"
+  },
+  "measurement": [
+    {
+      "level": 0,
+      "label": "Logs and alerts",
+      "shows": "Arrivals, orders processed, merchants and the money. Nothing in between."
+    },
+    {
+      "level": 1,
+      "label": "Core events",
+      "shows": "Also the first step and the share of customers lost each quarter."
+    },
+    {
+      "level": 2,
+      "label": "The full funnel",
+      "shows": "Also every step and every conversion rate, by segment."
+    }
+  ],
+  "quarters": [
+    {
+      "n": 1,
+      "title": "The sale is coming",
+      "opening": "{company} makes {hold_profit} a quarter and has {cash} in the bank. The festival sale is two quarters away. Of every 100 small stores that start, {per100_small} end up processing orders. Your team has about {road} weeks of engineering this quarter, and every one of them is spoken for."
+    },
+    {
+      "n": 2,
+      "title": "First results",
+      "opening": "Last quarter {shipped} shipped. Profit was {profit}, {delta} on the quarter before. {learned} {pleased}"
+    },
+    {
+      "n": 3,
+      "title": "The shock",
+      "opening": "Last quarter {shipped} shipped and profit was {profit}. Something has changed outside the team. Read the signal below, say what you think is behind it and whether you checked, and decide how to answer."
+    },
+    {
+      "n": 4,
+      "title": "The term sheet",
+      "opening": "The board will back one of three plans for next year. Profit last quarter was {profit}. Where you stand: usability {U}, reliability {R}, technical debt {D}, engineering trust {trust_eng}, leadership trust {trust_lead}."
+    }
+  ],
+  "rubric": {
+    "dimensions": [
+      {
+        "id": "strategy",
+        "name": "Technical direction and focus",
+        "weight": 10
+      },
+      {
+        "id": "evidence",
+        "name": "Diagnosis and evidence",
+        "weight": 10
+      },
+      {
+        "id": "delivery",
+        "name": "Delivery and execution",
+        "weight": 20
+      },
+      {
+        "id": "stewardship",
+        "name": "Quality, reliability and security",
+        "weight": 25
+      },
+      {
+        "id": "leadership",
+        "name": "Team and cross-team leadership",
+        "weight": 15
+      },
+      {
+        "id": "adapt",
+        "name": "Adaptability",
+        "weight": 10
+      },
+      {
+        "id": "value",
+        "name": "Business value",
+        "weight": 10
+      }
+    ],
+    "doubled": ["priority_alignment", "diagnosis", "learned_before_bets", "delivered_vs_best", "value_created", "plan_choice"],
+    "bands": [
+      {
+        "min": 90,
+        "label": "Exceptional"
+      },
+      {
+        "min": 75,
+        "label": "Strong"
+      },
+      {
+        "min": 60,
+        "label": "Competent"
+      },
+      {
+        "min": 40,
+        "label": "Weak"
+      },
+      {
+        "min": 0,
+        "label": "Poor"
+      }
+    ]
+  },
+  "calibration": {
+    "seeds": 40,
+    "bots": [
+      {
+        "id": "do_nothing",
+        "expected_final": {
+          "min": 0,
+          "max": 5
+        }
+      },
+      {
+        "id": "random",
+        "expected_final": {
+          "min": 20,
+          "max": 45
+        }
+      },
+      {
+        "id": "feature_factory",
+        "expected_final": {
+          "min": 10,
+          "max": 40
+        }
+      },
+      {
+        "id": "debt_first",
+        "expected_final": {
+          "min": 35,
+          "max": 65
+        }
+      },
+      {
+        "id": "textbook",
+        "expected_final": {
+          "min": 35,
+          "max": 65
+        }
+      },
+      {
+        "id": "evidence_led",
+        "expected_final": {
+          "min": 80,
+          "max": 100
+        }
+      }
+    ]
+  }
+}

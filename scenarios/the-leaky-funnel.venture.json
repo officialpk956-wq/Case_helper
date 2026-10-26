@@ -1,0 +1,938 @@
+{
+  "family": "venture",
+  "schema_version": "0.1",
+  "id": "marigold_leaky_funnel",
+  "title": "The Leaky Funnel",
+  "version": "1.0.0",
+  "meta": {
+    "domain": "product",
+    "seat": "product_manager",
+    "order": 3,
+    "audience": ["product-managers", "apm", "product-students"],
+    "est_minutes": 75,
+    "locale": "en-IN",
+    "inspiration": "A product manager's year in a company with a problem: four quarters, a squad, hidden facts that sponsors state wrongly, one market event and a plan for the year after.",
+    "rights_note": "Original scenario. The company, the people, the product and every number are invented."
+  },
+  "company": {
+    "name": "Marigold Pay",
+    "one_liner": "A three-year-old payments app in India with about 6 lakh active users and a sign-up funnel that leaks at identity checks.",
+    "stage": "Series B, making about ₹2 crore a quarter",
+    "market": "India: mobile-first, price-sensitive, with a regulator that reviews identity checks every year",
+    "business_model": "A fee on merchant payments, a share of credit arranged with a partner bank, and small charges on some transfers.",
+    "product": "The consumer app: sign-up, identity verification, payments and bill pay, and a QR code for small shops.",
+    "role": "Product manager for sign-up and activation. Your squad is eight engineers, three designers and two analysts.",
+    "brief": "You report to the Head of Product and the chief executive sits in your quarterly reviews. Of every hundred people who start signing up, only a handful make a first payment, and the biggest leak is identity verification. The board wants the funnel fixed in a year without hurting the profit. Nobody can say exactly where people drop out, because the app records installs and payments and little in between. You have four quarters of twelve weeks.",
+    "stakeholders": [
+      {
+        "name": "Meera Joshi",
+        "role": "Head of Product, your manager",
+        "says": "Show me what you learned before you show me what you built. In every review I will ask which cause you believe is behind the leak, and why."
+      },
+      {
+        "name": "Arjun Bhatt",
+        "role": "Chief Executive",
+        "says": "Merchants will love the soundbox. I met three of them at a fair and they did not want to give it back."
+      },
+      {
+        "name": "Kavya Rao",
+        "role": "Head of Growth",
+        "says": "Rivals pay people to join. A first-payment reward and a referral programme will move the number this quarter."
+      },
+      {
+        "name": "Sameer Qureshi",
+        "role": "Head of Risk and Compliance",
+        "says": "If people pay before they are verified, fraud will rise. By how much depends on how many we let through."
+      },
+      {
+        "name": "Tanvi Desai",
+        "role": "Engineering Lead",
+        "says": "Every change to the identity service takes twice as long as it should. Give us time to clean it."
+      },
+      {
+        "name": "Rohan Iyer",
+        "role": "Support Lead",
+        "says": "Most verification complaints are people who could not get the camera to read the card."
+      },
+      {
+        "name": "The partner bank and the regulator",
+        "role": "Outside parties",
+        "says": "We watch your failure rate. The regulator reviews identity every year."
+      }
+    ]
+  },
+  "stage_names": ["Registered", "Identity verified", "First payment"],
+  "segments": [
+    {
+      "id": "new",
+      "name": "New-to-digital payers",
+      "description": "People new to digital payments, often on cheap phones and in regional languages.",
+      "inflow": 420000,
+      "stages": [0.7, 0.36, 0.52],
+      "churn": 0.2,
+      "arpu": 140,
+      "var_cost": 38,
+      "customers": 290000,
+      "stage_cost": 9
+    },
+    {
+      "id": "sal",
+      "name": "Salaried urban users",
+      "description": "Salaried people in cities who already pay bills online.",
+      "inflow": 180000,
+      "stages": [0.78, 0.55, 0.66],
+      "churn": 0.18,
+      "arpu": 520,
+      "var_cost": 70,
+      "customers": 270000,
+      "stage_cost": 9
+    },
+    {
+      "id": "mer",
+      "name": "Micro-merchants",
+      "description": "Small shop owners who take payments through a QR code.",
+      "inflow": 60000,
+      "stages": [0.64, 0.42, 0.48],
+      "churn": 0.18,
+      "arpu": 980,
+      "var_cost": 210,
+      "customers": 46000,
+      "stage_cost": 9
+    }
+  ],
+  "items": [
+    {
+      "id": "kyc_camera",
+      "name": "Identity-check camera guidance and retry",
+      "about": "Guided capture for the identity photo: framing hints, glare warnings, one automatic retry.",
+      "area": "activation",
+      "eng": 18,
+      "design": 4,
+      "data": 0,
+      "clar": 0.6,
+      "debt": 1,
+      "effects": {
+        "new": {
+          "s2": 0.1298
+        },
+        "sal": {
+          "s2": 0.0472
+        },
+        "mer": {
+          "s2": 0.0885
+        }
+      },
+      "scale": [
+        {
+          "v": "camera_share",
+          "ref": 0.65,
+          "keys": ["s2"]
+        }
+      ],
+      "sponsor": "eng",
+      "serves": ["activate"]
+    },
+    {
+      "id": "kyc_defer",
+      "name": "Verify after the first payment",
+      "about": "Let people make a first payment before verification finishes, with a low limit until it does.",
+      "area": "activation",
+      "eng": 30,
+      "design": 6,
+      "data": 1,
+      "clar": 0.35,
+      "debt": 3,
+      "effects": {
+        "new": {
+          "s2": 0.4878,
+          "s3": -0.08
+        },
+        "sal": {
+          "s2": 0.3252,
+          "s3": -0.05
+        },
+        "mer": {
+          "s2": 0.4336,
+          "s3": -0.07
+        }
+      },
+      "side_cost": {
+        "per_quarter": 136.78,
+        "v": "fraud_mult",
+        "ref": 1.2,
+        "cut_by": "fraud_v2",
+        "cut": 0.65
+      },
+      "sponsor": "lead",
+      "serves": ["activate", "grow"],
+      "needs": {
+        "trust": ["ext", 50],
+        "or_done": "fraud_v2"
+      },
+      "risky": true,
+      "big": true
+    },
+    {
+      "id": "first_reward",
+      "name": "First-payment reward",
+      "about": "A small cashback on the first successful payment.",
+      "area": "activation",
+      "eng": 9,
+      "design": 2,
+      "data": 0,
+      "clar": 0.8,
+      "debt": 1,
+      "effects": {
+        "new": {
+          "s3": 0.3294,
+          "churn": -0.1141
+        },
+        "sal": {
+          "s3": 0.13176,
+          "churn": -0.04564
+        },
+        "mer": {
+          "s3": 0.1098,
+          "churn": -0.03423
+        }
+      },
+      "scale": [
+        {
+          "v": "reward_hunters",
+          "ref": 0.4,
+          "keys": ["churn"]
+        }
+      ],
+      "per_new": 45,
+      "sponsor": "biz",
+      "serves": ["activate", "grow"],
+      "risky": true
+    },
+    {
+      "id": "lang_onboard",
+      "name": "Regional-language onboarding",
+      "about": "Onboarding and error messages in six regional languages.",
+      "area": "activation",
+      "eng": 18,
+      "design": 8,
+      "data": 0,
+      "clar": 0.6,
+      "debt": 1,
+      "effects": {
+        "new": {
+          "s1": 0.077,
+          "s2": 0.0924
+        },
+        "sal": {
+          "s1": 0.0154
+        },
+        "mer": {
+          "s2": 0.0308
+        }
+      },
+      "sponsor": "design",
+      "serves": ["grow", "activate"]
+    },
+    {
+      "id": "support_bot",
+      "name": "Support deflection assistant",
+      "about": "An assistant that answers the twenty commonest support questions without a person.",
+      "area": "cost",
+      "eng": 18,
+      "design": 2,
+      "data": 0,
+      "clar": 0.7,
+      "debt": 2,
+      "effects": {
+        "new": {
+          "cost": -0.07,
+          "churn": 0.007
+        },
+        "sal": {
+          "cost": -0.07,
+          "churn": 0.007
+        },
+        "mer": {
+          "cost": -0.07,
+          "churn": 0.007
+        }
+      },
+      "sponsor": "biz",
+      "serves": ["quality", "monetise"]
+    },
+    {
+      "id": "salary_link",
+      "name": "Salary-account linking and credit offers",
+      "about": "Link a salary account and offer credit against it. Needs the partner bank's confidence.",
+      "area": "monetise",
+      "eng": 24,
+      "design": 4,
+      "data": 0,
+      "clar": 0.5,
+      "debt": 2,
+      "effects": {
+        "sal": {
+          "arpu": 0.0638,
+          "s3": 0.0145
+        }
+      },
+      "sponsor": "lead",
+      "serves": ["monetise"],
+      "needs": {
+        "trust": ["ext", 45]
+      }
+    },
+    {
+      "id": "soundbox",
+      "name": "Merchant QR soundbox integration",
+      "about": "Integrate a QR speaker so merchants hear each payment. Marigold subsidises the device, about ₹1,800 for each of its 46,000 merchants. The chief executive's favourite.",
+      "area": "monetise",
+      "eng": 30,
+      "design": 4,
+      "data": 0,
+      "clar": 0.4,
+      "debt": 2,
+      "effects": {
+        "mer": {
+          "arpu": 0.32508,
+          "churn": 0.2709,
+          "s3": 0.1806
+        }
+      },
+      "scale": [
+        {
+          "v": "merchant_pull",
+          "ref": 0.7,
+          "keys": ["arpu", "churn", "s3"]
+        }
+      ],
+      "one_off": 816.72,
+      "sponsor": "lead",
+      "serves": ["monetise", "retain"],
+      "big": true,
+      "fav": true
+    },
+    {
+      "id": "fraud_v2",
+      "name": "Fraud rules engine v2",
+      "about": "A rules engine that scores each payment before it clears. Needed before verification can be deferred safely.",
+      "area": "quality",
+      "eng": 18,
+      "design": 0,
+      "data": 3,
+      "clar": 0.5,
+      "debt": 0,
+      "effects": {
+        "sal": {
+          "s3": 0.0216
+        },
+        "mer": {
+          "s3": 0.0216
+        }
+      },
+      "sponsor": "ext",
+      "serves": ["quality"],
+      "needs": {
+        "level": 1
+      }
+    },
+    {
+      "id": "app_perf",
+      "name": "Low-end Android performance",
+      "about": "Make the app fast on 2 GB phones: smaller bundles, fewer cold starts.",
+      "area": "quality",
+      "eng": 12,
+      "design": 0,
+      "data": 0,
+      "clar": 0.8,
+      "debt": -2,
+      "quality": {
+        "rel": 4
+      },
+      "effects": {
+        "new": {
+          "s1": 0.0366,
+          "churn": 0.0244
+        },
+        "sal": {
+          "churn": 0.0122
+        }
+      },
+      "sponsor": "eng",
+      "serves": ["quality", "retain"]
+    },
+    {
+      "id": "nudges",
+      "name": "Smart nudges",
+      "about": "Timely reminders to finish verification and to make a first payment.",
+      "area": "retention",
+      "eng": 6,
+      "design": 2,
+      "data": 0,
+      "clar": 0.8,
+      "debt": 1,
+      "effects": {
+        "new": {
+          "churn": 0.01,
+          "s3": 0.008
+        },
+        "sal": {
+          "churn": 0.01,
+          "s3": 0.008
+        },
+        "mer": {
+          "churn": 0.01,
+          "s3": 0.008
+        }
+      },
+      "sponsor": "biz",
+      "serves": ["retain"]
+    },
+    {
+      "id": "referral",
+      "name": "Referral programme",
+      "about": "Pay a user and their friend when the friend makes a first payment.",
+      "area": "growth",
+      "eng": 15,
+      "design": 4,
+      "data": 0,
+      "clar": 0.6,
+      "debt": 1,
+      "effects": {
+        "new": {
+          "inflow": 0.0948
+        },
+        "sal": {
+          "inflow": 0.0474
+        }
+      },
+      "per_new": 60,
+      "per_new_on": "lift",
+      "sponsor": "biz",
+      "serves": ["grow"]
+    },
+    {
+      "id": "analytics_v2",
+      "name": "Funnel event instrumentation",
+      "about": "Record every step of the funnel as events, so the team can see where people leave. Raises measurement to level 2.",
+      "area": "learning",
+      "eng": 9,
+      "design": 0,
+      "data": 2,
+      "clar": 0.9,
+      "debt": -1,
+      "effects": {},
+      "sponsor": "eng",
+      "serves": ["learn"],
+      "enables": 2
+    },
+    {
+      "id": "core_refactor",
+      "name": "Identity-service refactor",
+      "about": "Rebuild the identity service that every release has to work around. Pays down technical debt.",
+      "area": "debt",
+      "eng": 24,
+      "design": 0,
+      "data": 0,
+      "clar": 0.6,
+      "debt": -12,
+      "quality": {
+        "rel": 3
+      },
+      "effects": {},
+      "sponsor": "eng",
+      "serves": ["debt", "quality"]
+    }
+  ],
+  "squad": {
+    "eng": 8,
+    "design": 3,
+    "data": 2,
+    "cost_eng": 8.75,
+    "cost_design": 8,
+    "cost_data": 8,
+    "pm": 12,
+    "fixed": 668.5,
+    "marketing": 800
+  },
+  "start": {
+    "debt": 58,
+    "reliability": 62,
+    "usability": 52,
+    "morale": 68,
+    "trust": {
+      "eng": 62,
+      "design": 58,
+      "biz": 50,
+      "lead": 55,
+      "ext": 44
+    },
+    "cash": 2500,
+    "level": 0
+  },
+  "incident_base": 0.55,
+  "design_ref": 20,
+  "hidden": [
+    {
+      "id": "camera_share",
+      "label": "Share of verification failures that are the camera step",
+      "description": "Of the people who fail identity verification, the share who fail at the camera step rather than at document rules or mismatches. Support says most of it is the camera.",
+      "brief": 0.65,
+      "range": [0.35, 0.75],
+      "unit": "share"
+    },
+    {
+      "id": "fraud_mult",
+      "label": "Fraud losses if verification is deferred, against today's",
+      "description": "Fraud losses, as a multiple of today's, if people can pay before verification finishes. The risk team's number was made when the plan was a small pilot.",
+      "brief": 1.2,
+      "range": [0.9, 2.6],
+      "unit": "multiple"
+    },
+    {
+      "id": "reward_hunters",
+      "label": "Share of rewarded users who leave once the reward is spent",
+      "description": "The share of people who take the first-payment reward and leave once it is spent. Growth's figure comes from a campaign that targeted loyal users.",
+      "brief": 0.4,
+      "range": [0.15, 0.85],
+      "unit": "share"
+    },
+    {
+      "id": "merchant_pull",
+      "label": "How much merchants value the soundbox, against what is expected",
+      "description": "How much merchants really value the soundbox, as a share of the benefit the chief executive expects. Taken from three merchants they met.",
+      "brief": 0.7,
+      "range": [0.15, 0.95],
+      "unit": "share"
+    }
+  ],
+  "events": [
+    {
+      "id": "reg_tighten",
+      "name": "The regulator tightens identity rules",
+      "weight": 0.35,
+      "signal": "Verification completions fell across every segment in one week, and the compliance desk has a new circular.",
+      "body": "A new rule requires a second identity factor. Completion drops until the flow is rebuilt around it.",
+      "cause": "rule_change",
+      "direction": "comply_fast",
+      "causes": [
+        {
+          "id": "rule_change",
+          "label": "A rule changed"
+        },
+        {
+          "id": "app_bug",
+          "label": "We shipped a bug"
+        },
+        {
+          "id": "fraud_spike",
+          "label": "A fraud wave hit"
+        }
+      ],
+      "directions": [
+        {
+          "id": "comply_fast",
+          "label": "Rebuild to the new rule at once"
+        },
+        {
+          "id": "lobby_delay",
+          "label": "Ask the regulator for time"
+        },
+        {
+          "id": "pause_deferral",
+          "label": "Pause any shortcut and wait"
+        }
+      ],
+      "effects": {
+        "new": {
+          "s2": -0.15
+        },
+        "sal": {
+          "s2": -0.15
+        },
+        "mer": {
+          "s2": -0.15
+        }
+      },
+      "mitigations": [
+        {
+          "live": "kyc_camera",
+          "by": 0.25
+        },
+        {
+          "trust": ["ext", 55],
+          "by": 0.2
+        },
+        {
+          "level": 1,
+          "by": 0.1
+        }
+      ]
+    },
+    {
+      "id": "bank_outage",
+      "name": "The partner bank has a bad week",
+      "weight": 0.35,
+      "signal": "Payments are timing out and support tickets say money left accounts and did not arrive.",
+      "body": "The partner bank's settlement rail fails twice. Users who were mid-payment lose trust in you, not in the bank.",
+      "cause": "partner_outage",
+      "direction": "failover_comms",
+      "causes": [
+        {
+          "id": "partner_outage",
+          "label": "The partner is failing"
+        },
+        {
+          "id": "app_bug",
+          "label": "Our release broke payments"
+        },
+        {
+          "id": "fraud_spike",
+          "label": "Fraud controls are blocking real payments"
+        }
+      ],
+      "directions": [
+        {
+          "id": "failover_comms",
+          "label": "Fail over and tell users plainly"
+        },
+        {
+          "id": "wait_it_out",
+          "label": "Wait for the bank"
+        },
+        {
+          "id": "roll_back",
+          "label": "Roll back our last release"
+        }
+      ],
+      "effects": {
+        "new": {
+          "s3": -0.08,
+          "churn": -0.08
+        },
+        "sal": {
+          "s3": -0.1,
+          "churn": -0.08
+        },
+        "mer": {
+          "s3": -0.1,
+          "churn": -0.1
+        }
+      },
+      "incident": 1.2,
+      "mitigations": [
+        {
+          "rel": 70,
+          "by": 0.35
+        },
+        {
+          "live": "app_perf",
+          "by": 0.1
+        },
+        {
+          "trust": ["eng", 60],
+          "by": 0.15
+        }
+      ]
+    },
+    {
+      "id": "cashback_war",
+      "name": "A rival starts a cashback war",
+      "weight": 0.3,
+      "signal": "New installs are cheaper for the rival and our newest users are leaving for it within weeks.",
+      "body": "A funded rival pays people to switch. The users you are least able to keep are the ones who leave first.",
+      "cause": "competitor_promo",
+      "direction": "targeted_retention",
+      "causes": [
+        {
+          "id": "competitor_promo",
+          "label": "A rival is paying to win users"
+        },
+        {
+          "id": "app_bug",
+          "label": "Our app got worse"
+        },
+        {
+          "id": "seasonal",
+          "label": "A seasonal dip"
+        }
+      ],
+      "directions": [
+        {
+          "id": "targeted_retention",
+          "label": "Keep our best users, do not match the offer"
+        },
+        {
+          "id": "match_offer",
+          "label": "Match the cashback"
+        },
+        {
+          "id": "ignore",
+          "label": "Ignore it"
+        }
+      ],
+      "effects": {
+        "new": {
+          "inflow": -0.2,
+          "churn": -0.15
+        },
+        "sal": {
+          "inflow": -0.1,
+          "churn": -0.08
+        },
+        "mer": {
+          "churn": -0.04
+        }
+      },
+      "mitigations": [
+        {
+          "live": "nudges",
+          "by": 0.2
+        },
+        {
+          "live": "first_reward",
+          "by": 0.15
+        },
+        {
+          "live": "soundbox",
+          "by": 0.1
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "acquire",
+      "name": "Acquire hard",
+      "pitch": "Spend heavily on installs next year and live with what it costs.",
+      "inflow": 1.35,
+      "arpu": 1,
+      "cost": 1,
+      "churn": 1,
+      "marketing": 1.4,
+      "needs": {
+        "use": 55,
+        "rel": 60
+      }
+    },
+    {
+      "id": "deepen",
+      "name": "Deepen the base",
+      "pitch": "Earn more from the people you already have: credit, merchants, fewer exits.",
+      "inflow": 1,
+      "arpu": 1.14,
+      "cost": 1,
+      "churn": 0.95,
+      "marketing": 1,
+      "needs": {
+        "use": 50,
+        "trust": ["ext", 50]
+      }
+    },
+    {
+      "id": "profit",
+      "name": "Profit first",
+      "pitch": "Cut acquisition spend and cost to serve, and let the base run.",
+      "inflow": 0.88,
+      "arpu": 1,
+      "cost": 0.88,
+      "churn": 1,
+      "marketing": 0.7,
+      "needs": {
+        "debt_below": 70
+      }
+    }
+  ],
+  "root": {
+    "prompt": "Which of these do you believe is behind the leak?",
+    "options": [
+      {
+        "id": "camera_failures",
+        "label": "People fail the identity camera step"
+      },
+      {
+        "id": "process_friction",
+        "label": "The identity flow asks too much"
+      },
+      {
+        "id": "weak_reward",
+        "label": "There is no reason to make a first payment"
+      },
+      {
+        "id": "reliability",
+        "label": "The app is too unreliable"
+      },
+      {
+        "id": "need_more_data",
+        "label": "I need more data"
+      }
+    ],
+    "dive": "camera_share",
+    "threshold": 0.55,
+    "high": "camera_failures",
+    "low": "process_friction"
+  },
+  "measurement": [
+    {
+      "level": 0,
+      "label": "Installs and payments",
+      "shows": "Arrivals, first payments, customers and the money. Nothing in between."
+    },
+    {
+      "level": 1,
+      "label": "Core events",
+      "shows": "Also sign-ups and the share of customers lost each quarter."
+    },
+    {
+      "level": 2,
+      "label": "The full funnel",
+      "shows": "Also every step and every conversion rate, by segment."
+    }
+  ],
+  "quarters": [
+    {
+      "n": 1,
+      "title": "The review",
+      "opening": "{company} is making {hold_profit} a quarter and has {cash} in the bank. Of every 100 people who start signing up, {per100_new} new-to-digital users, {per100_sal} salaried users and {per100_mer} merchants make a first payment. Your squad has about {road} weeks of engineering this quarter. Right now you can see installs and payments, and nothing in between."
+    },
+    {
+      "n": 2,
+      "title": "First results",
+      "opening": "Last quarter {shipped} shipped. Profit was {profit}, {delta} on the quarter before. {learned} {pleased}"
+    },
+    {
+      "n": 3,
+      "title": "The shock",
+      "opening": "Last quarter {shipped} shipped and profit was {profit}. Something has changed outside the product. Read the signal below, say what you think is behind it and whether you checked, and decide how to answer."
+    },
+    {
+      "n": 4,
+      "title": "The term sheet",
+      "opening": "The board will back one of three plans for next year. Profit last quarter was {profit}. Where you stand: usability {U}, reliability {R}, technical debt {D}, engineering trust {trust_eng}, outside trust {trust_ext}."
+    }
+  ],
+  "rubric": {
+    "dimensions": [
+      {
+        "id": "strategy",
+        "name": "Strategy and focus",
+        "weight": 20
+      },
+      {
+        "id": "evidence",
+        "name": "Customer and evidence",
+        "weight": 20
+      },
+      {
+        "id": "delivery",
+        "name": "Delivery and execution",
+        "weight": 15
+      },
+      {
+        "id": "stewardship",
+        "name": "Quality and technical stewardship",
+        "weight": 10
+      },
+      {
+        "id": "leadership",
+        "name": "Cross-team leadership",
+        "weight": 10
+      },
+      {
+        "id": "adapt",
+        "name": "Adaptability",
+        "weight": 10
+      },
+      {
+        "id": "value",
+        "name": "Business value",
+        "weight": 15
+      }
+    ],
+    "doubled": ["priority_alignment", "diagnosis", "learned_before_bets", "delivered_vs_best", "value_created", "plan_choice"],
+    "bands": [
+      {
+        "min": 90,
+        "label": "Exceptional"
+      },
+      {
+        "min": 75,
+        "label": "Strong"
+      },
+      {
+        "min": 60,
+        "label": "Competent"
+      },
+      {
+        "min": 40,
+        "label": "Weak"
+      },
+      {
+        "min": 0,
+        "label": "Poor"
+      }
+    ]
+  },
+  "calibration": {
+    "seeds": 40,
+    "bots": [
+      {
+        "id": "do_nothing",
+        "expected_final": {
+          "min": 0,
+          "max": 5
+        }
+      },
+      {
+        "id": "random",
+        "expected_final": {
+          "min": 30,
+          "max": 40
+        },
+        "revised": {
+          "min": 15,
+          "max": 35,
+          "why": "Written as 15-35 before the first run. The mean over 40 games was 31.2 to 36.7, so the range was revised to 30-40 after seeing results, at the owner's instruction. It was set to fit what was observed, so landing inside it shows nothing about the original expectation."
+        }
+      },
+      {
+        "id": "feature_factory",
+        "expected_final": {
+          "min": 20,
+          "max": 40
+        }
+      },
+      {
+        "id": "debt_first",
+        "expected_final": {
+          "min": 45,
+          "max": 55
+        },
+        "revised": {
+          "min": 25,
+          "max": 45,
+          "why": "Written as 25-45 before the first run. The first run put it at 60-65, the dimension weights were then changed, and the range was revised to 45-55 after seeing results, at the owner's instruction."
+        }
+      },
+      {
+        "id": "textbook",
+        "expected_final": {
+          "min": 40,
+          "max": 60
+        }
+      },
+      {
+        "id": "evidence_led",
+        "expected_final": {
+          "min": 90,
+          "max": 95
+        },
+        "revised": {
+          "min": 65,
+          "max": 90,
+          "why": "Written as 65-90 before the first run. The mean over 40 games was 91.6 to 92.9, so the range was revised to 90-95 after seeing results, at the owner's instruction. It was set to fit what was observed."
+        }
+      }
+    ]
+  }
+}
