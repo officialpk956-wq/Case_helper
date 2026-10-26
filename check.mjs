@@ -7,8 +7,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-// ponytail: borrow ajv from any project that already has it; no install needed here.
-const AJV_FROM = process.env.AJV_FROM ?? "D:/d/rea/package.json";
+const AJV_FROM = process.env.AJV_FROM ?? join(here, "package.json");
 const Ajv2020 = createRequire(AJV_FROM)("ajv/dist/2020");
 
 // The rule catalogue: every `fn` the engine must implement. Single source of truth.
